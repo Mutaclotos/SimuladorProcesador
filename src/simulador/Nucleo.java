@@ -56,6 +56,25 @@ public class Nucleo extends Thread
     	System.out.println("Comenzando simulacion de Nucleo " + nombre + ".");
     	while(!Procesador.colaHilillos.isEmpty())
     	{
+    		if(Procesador.colaHilillosBloqueada)
+    		{
+    			try 
+            	{
+    				this.wait();
+                } catch (InterruptedException e) 
+            	{
+                   e.printStackTrace();
+                }
+    		}
+
+    		Procesador.colaHilillosBloqueada = true; //Si la cola de hilillos no está bloqueada, bloquearla
+    		
+    		copiarAMemoriaInstrucciones();
+    		
+    		actualizarCola();
+    		
+    		Procesador.colaHilillosBloqueada = false; //Se libera la cola de hilillos
+    		notifyAll();
     		
     	}
     	esperarTerminacion();
@@ -68,16 +87,45 @@ public class Nucleo extends Thread
     	{
     		try 
         	{
-               wait();
+               this.wait();
             } catch (InterruptedException e) 
         	{
                e.printStackTrace();
             }
     	}
     	
-    	System.out.println("Hilo " + this.nombre + " terminado.");
+    	System.out.println("Hilo de nucleo " + this.nombre + " terminado.");
     	notifyAll();
     	
+    }
+    
+    //Copia todas las instrucciones de un hilillo a la memoria local de instrucciones de un procesador
+    private void copiarAMemoriaInstrucciones()
+    {
+    	int cantidad = Procesador.colaHilillos.get(0).getCantidadInst();
+    	int[] instruccion;
+    	int indice = 0;
+    	int index = 0;
+    	//TODO: Actualizar pc
+    	for(int i = pc; i < cantidad; i++)
+        {
+    		instruccion = Procesador.colaHilillos.get(0).getInstruccion(i);
+    		for(int j = indice; j < indice + 4; j++)
+            {
+        		Procesador.memInstrucciones[indice] = instruccion[index];
+        		index++;
+            }
+    		indice = indice + 4;
+    		index = 0;
+        }
+    	
+    }
+    
+    //Remueve la cabeza de la cola y la añade al final
+    private void actualizarCola()
+    {
+    	Hilillo cabeza = Procesador.colaHilillos.remove(0);
+    	Procesador.colaHilillos.add(cabeza);
     }
     
 
