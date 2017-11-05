@@ -16,7 +16,6 @@ public class Nucleo extends Thread
     public int quantum;
     private int[] registro;
     public int[] cacheDatos;
-    public static boolean cacheBloqueada; //Booleana que determina si la cache de datos esta bloqueada o no
     
     
     /**
@@ -29,7 +28,6 @@ public class Nucleo extends Thread
         this.nombre = nombre;
         registro = new int[32];
         cacheDatos = new int[24];
-        cacheBloqueada = false;
         //Se inicializa el registro en 0
         for(int i = 0;i < 32; i++)
         {
@@ -67,7 +65,7 @@ public class Nucleo extends Thread
             	{
                    e.printStackTrace();
                 }*/
-    			copiarAMemoriaInstrucciones();
+    			hililloAEjecutar = copiarAMemoriaInstrucciones();
         		
         		actualizarCola();
     		}
@@ -76,7 +74,7 @@ public class Nucleo extends Thread
     		{
     			if(Procesador.cantidadContextos > 0)
     			{
-    				buscarContexto();
+    				buscarContexto(hililloAEjecutar);
     			}
     		}
 
@@ -84,7 +82,7 @@ public class Nucleo extends Thread
     		
     		//Procesador.colaHilillosBloqueada = false; //Se libera la cola de hilillos
     		//notifyAll();
-    		
+    		esperarAvanceTic();
     	}
     	esperarTerminacion();
     }
@@ -104,28 +102,57 @@ public class Nucleo extends Thread
     	}
     	
     	System.out.println("Hilo de nucleo " + this.nombre + " terminado.");
-    	notifyAll();
+    	this.notifyAll();
     	
     }
     
-    public void buscarContexto()
+    public void esperarAvanceTic()
+    {
+    	Controlador.hilosListosParaTic++;
+    	if(Controlador.hilosListosParaTic < 3)
+    	{
+    		try 
+        	{
+               this.wait();
+            } catch (InterruptedException e) 
+        	{
+               e.printStackTrace();
+            }
+    	}
+    	
+    	System.out.println("Todos los hilos listos para el avance de tic.");
+    	this.notifyAll();
+    }
+    
+    //Metodo encargado de ejecutar la operacion descrita en una instruccion
+    public void ejecutarOperacion()
+    {
+    	
+    }
+    
+    public void buscarContexto(int etiqueta)
     {
     	int[] contextoActual;
     	for(int i = 0; i < Procesador.cantidadContextos; i++)
     	{
     		contextoActual = Procesador.contexto.get(i);
-    		if(contextoActual[0] == 0)
+    		if(contextoActual[0] == etiqueta) //Solo se cargan los registros y pc del hilillo correspondiente
     		{
-    			
+    			this.pc = contextoActual[1];
+    			for(int j = 0; j < registro.length; j++)
+    	    	{
+    				registro[j] = contextoActual[j + 2];
+    	    	}
     		}
     		
     	}
     }
     
     //Copia todas las instrucciones de un hilillo a la memoria local de instrucciones de un procesador
-    private void copiarAMemoriaInstrucciones()
+    private int copiarAMemoriaInstrucciones()
     {
     	int cantidad = Procesador.colaHilillos.get(0).getCantidadInst();
+    	int etiqueta = Procesador.colaHilillos.get(0).getEtiqueta();
     	int[] instruccion;
     	int indice = 0;
     	int index = 0;
@@ -141,7 +168,7 @@ public class Nucleo extends Thread
     		indice = indice + 4;
     		index = 0;
         }
-    	
+    	return etiqueta;
     }
     
     //Remueve la cabeza de la cola y la añade al final
