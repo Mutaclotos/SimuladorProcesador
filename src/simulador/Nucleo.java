@@ -12,8 +12,11 @@ public class Nucleo extends Thread
     // instance variables - replace the example below with your own
 
     private int pc;
+    private int nombre;
     private int[] registro;
-    private int[] cacheDatos;
+    public int[] cacheDatos;
+    public static boolean cacheBloqueada; //Booleana que determina si la cache de datos esta bloqueada o no
+    public static boolean hiloTerminado; //Booleana que determina si el nucleo esta listo para terminar su ejecucion
     
     /**
      * Constructor for objects of class Nucleo
@@ -21,8 +24,11 @@ public class Nucleo extends Thread
     public Nucleo(int nombre)
     {
         pc = 0;
+        this.nombre = nombre;
         registro = new int[32];
         cacheDatos = new int[24];
+        hiloTerminado = false;
+        cacheBloqueada = false;
         //Se inicializa el registro en 0
         for(int i = 0;i < 32; i++)
         {
@@ -42,8 +48,34 @@ public class Nucleo extends Thread
             
         }
         System.out.println("Nucleo " + nombre + " inicializado.");
-        imprimirArreglo(cacheDatos, 24);
+        //imprimirArreglo(cacheDatos, 24);
     }
+    
+    public void simularNucleo()
+    {
+    	System.out.println("Comenzando simulacion de Nucleo " + nombre + ".");
+    	while(!Procesador.colaHilillos.isEmpty())
+    	{
+    		
+    	}
+    	esperarTerminacion();
+    }
+    
+    public synchronized void esperarTerminacion()
+    {
+    	hiloTerminado = true;
+    	try 
+    	{
+           wait();
+        } catch (InterruptedException e) 
+    	{
+           e.printStackTrace();
+        }
+    	System.out.println("Hilo " + this.nombre + " terminado.");
+    	notifyAll();
+    	
+    }
+    
 
     public void imprimirArreglo(int[] arreglo, int tamano)
     {

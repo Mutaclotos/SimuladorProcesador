@@ -13,7 +13,7 @@ import java.io.IOException;
 public class Controlador
 {
     // instance variables - replace the example below with your own
-	public static int[] memoriaDatos; 
+	public static int[] memoriaDatos;  //La memoria compartida de datos
     Procesador procesador;
     /**
      * Constructor for objects of class main

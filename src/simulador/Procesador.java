@@ -14,11 +14,14 @@ import java.util.List;
  */
 public class Procesador
 {
-    private int[] cacheInstrucciones;
-    private int[] memInstrucciones;
-    public int[][] directorio;
+    private int[] cacheInstrucciones; //El cache de instrucciones del procesador
+    private int[] memInstrucciones; //La memoria local de instrucciones del procesador
+    public int[][] directorio; //El directorio del procesador
+    public static boolean directorioBloqueado; //Booleana que determina si el directorio esta bloqueado o no
     private List<int[]> contexto = new ArrayList<int[]>(); //Permanece vacio hasta el primer cambio de contexto
-    private List<Hilillo> colaHilillos = new ArrayList<Hilillo>(); //Cola circular de hililos
+    public static boolean contextoBloqueado; //Booleana que determina si el contexto esta bloqueado o no
+    public static List<Hilillo> colaHilillos = new ArrayList<Hilillo>(); //Cola circular de hililos
+    public static boolean colaHilillosBloqueada; //Booleana que determina si la cola de hilillos esta bloqueada o no
 
     /**
      * Constructor for objects of class Procesador
@@ -29,7 +32,7 @@ public class Procesador
     	cacheInstrucciones = new int [tamanoCache];
     	memInstrucciones = new int [tamanoMemoriaI];
     	directorio = new int [tamanoMemoriaD / 4][5];
-    	
+    	directorioBloqueado = false;
     	
     	for(int i = 0; i < tamanoCache; i++)
 	    {
@@ -56,8 +59,8 @@ public class Procesador
     	    }
 	    }
     	
-    	System.out.println("Directorio: ");
-    	imprimirMatriz(directorio);
+    	//System.out.println("Directorio: ");
+    	//imprimirMatriz(directorio);
     	
     	try
     	{
@@ -71,6 +74,7 @@ public class Procesador
 	    	{
 	    	    public void run()
 	    	    {
+	    	    	simularNucleo();
 	    	      //System.out.println("Nucleo de procesador");
 	    	    }
 	    	};
@@ -104,12 +108,13 @@ public class Procesador
         BufferedReader br = new BufferedReader(new FileReader(archivo));
         String line = br.readLine();
         int contador = 0;
+        int cantidad = 0;
         
         Hilillo hilillo = new Hilillo(contador); //Se crea un nuevo hilillo para insertar las instrucciones leidas en el primer programa
         
         while(line != null)
         {
-            System.out.println(line);
+            //System.out.println(line);
             int[] instruccion = convertirLinea(line);
             hilillo.cargarInstrucciones(instruccion);
             
@@ -117,11 +122,24 @@ public class Procesador
             {
             	contador++;
             	llenarColaHilillos(hilillo); //Se inserta el hilillo en la cola de hilillos
-            	
+            	cantidad = 0;
             	hilillo = new Hilillo(contador);
+            }
+            else
+            {
+            	cantidad++;
+            	hilillo.setCantidadInst(cantidad);
+            	System.out.println("Instruccion añadida al hilillo: ");
+            	imprimirArreglo(hilillo.getInstruccion(cantidad - 1), 4);
+            	//System.out.println("Cantidad instrucciones hilillo: " + hilillo.getCantidadInst());
             }
             line = br.readLine(); 
         }
+        
+        
+        int size = colaHilillos.size();
+        //System.out.println("Tamaño cola de hilillos: " + size);
+        //imprimirArreglo(colaHilillos.get(0).getInstruccion(0), 4);
         br.close();
     }
     
@@ -133,6 +151,16 @@ public class Procesador
     	{
     		instrucciones[i] = Integer.parseInt(instrucs[i]);
     	}
+    	//imprimirArreglo(instrucciones, 4);
     	return instrucciones;
+    }
+    
+    public void imprimirArreglo(int[] arreglo, int tamano)
+    {
+    	for(int i = 0; i < tamano; i++)
+        {
+    		System.out.print(arreglo[i] + ", ");
+        }
+    	System.out.println();
     }
 }
