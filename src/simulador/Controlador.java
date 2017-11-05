@@ -14,6 +14,7 @@ public class Controlador
 {
     // instance variables - replace the example below with your own
 	public static int[] memoriaDatos;  //La memoria compartida de datos
+	public static int hilosTerminados; //Booleana que determina la cantidad de nucleos listos para terminar su terminacion
     Procesador procesador;
     /**
      * Constructor for objects of class main
@@ -21,6 +22,8 @@ public class Controlador
     public static void main(String[] args)
     {
       memoriaDatos = new int[96];
+      hilosTerminados = 0;
+      
       for(int i = 0; i < memoriaDatos.length; i++)
 	   {
     	  memoriaDatos[i] = 0;

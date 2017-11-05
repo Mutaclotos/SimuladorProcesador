@@ -13,10 +13,11 @@ public class Nucleo extends Thread
 
     private int pc;
     private int nombre;
+    public int quantum;
     private int[] registro;
     public int[] cacheDatos;
     public static boolean cacheBloqueada; //Booleana que determina si la cache de datos esta bloqueada o no
-    public static int hilosTerminados; //Booleana que determina si el nucleo esta listo para terminar su ejecucion
+    
     
     /**
      * Constructor for objects of class Nucleo
@@ -24,10 +25,10 @@ public class Nucleo extends Thread
     public Nucleo(int nombre)
     {
         pc = 0;
+        quantum = 0;
         this.nombre = nombre;
         registro = new int[32];
         cacheDatos = new int[24];
-        hilosTerminados = 0;
         cacheBloqueada = false;
         //Se inicializa el registro en 0
         for(int i = 0;i < 32; i++)
@@ -56,34 +57,42 @@ public class Nucleo extends Thread
     	System.out.println("Comenzando simulacion de Nucleo " + nombre + ".");
     	while(!Procesador.colaHilillos.isEmpty())
     	{
-    		if(Procesador.colaHilillosBloqueada)
+    		int hililloAEjecutar;
+    		synchronized(Procesador.colaHilillos) //Si la cola de hilillos no está bloqueada, bloquearla
     		{
-    			try 
+    			/*try 
             	{
-    				this.wait();
+    				Procesador.colaHilillos.wait();
                 } catch (InterruptedException e) 
             	{
                    e.printStackTrace();
-                }
+                }*/
+    			copiarAMemoriaInstrucciones();
+        		
+        		actualizarCola();
+    		}
+    		
+    		synchronized(Procesador.contexto) //Si el contexto no está bloqueado, bloquearlo
+    		{
+    			if(Procesador.cantidadContextos > 0)
+    			{
+    				buscarContexto();
+    			}
     		}
 
-    		Procesador.colaHilillosBloqueada = true; //Si la cola de hilillos no está bloqueada, bloquearla
+    		//Procesador.colaHilillosBloqueada = true; //Si la cola de hilillos no está bloqueada, bloquearla
     		
-    		copiarAMemoriaInstrucciones();
-    		
-    		actualizarCola();
-    		
-    		Procesador.colaHilillosBloqueada = false; //Se libera la cola de hilillos
-    		notifyAll();
+    		//Procesador.colaHilillosBloqueada = false; //Se libera la cola de hilillos
+    		//notifyAll();
     		
     	}
     	esperarTerminacion();
     }
     
-    public synchronized void esperarTerminacion()
+    public void esperarTerminacion()
     {
-    	hilosTerminados++;
-    	if(hilosTerminados < 3)
+    	Controlador.hilosTerminados++;
+    	if(Controlador.hilosTerminados < 3)
     	{
     		try 
         	{
@@ -99,6 +108,20 @@ public class Nucleo extends Thread
     	
     }
     
+    public void buscarContexto()
+    {
+    	int[] contextoActual;
+    	for(int i = 0; i < Procesador.cantidadContextos; i++)
+    	{
+    		contextoActual = Procesador.contexto.get(i);
+    		if(contextoActual[0] == 0)
+    		{
+    			
+    		}
+    		
+    	}
+    }
+    
     //Copia todas las instrucciones de un hilillo a la memoria local de instrucciones de un procesador
     private void copiarAMemoriaInstrucciones()
     {
@@ -109,7 +132,7 @@ public class Nucleo extends Thread
     	//TODO: Actualizar pc
     	for(int i = pc; i < cantidad; i++)
         {
-    		instruccion = Procesador.colaHilillos.get(0).getInstruccion(i);
+    		instruccion = Procesador.colaHilillos.get(0).getInstruccion(i); //Solo se copian las instrucciones de la cabeza de la cola
     		for(int j = indice; j < indice + 4; j++)
             {
         		Procesador.memInstrucciones[indice] = instruccion[index];

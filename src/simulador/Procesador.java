@@ -16,10 +16,10 @@ public class Procesador
 {
     private int[] cacheInstrucciones; //El cache de instrucciones del procesador
     public static int[] memInstrucciones; //La memoria local de instrucciones del procesador
-    public int[][] directorio; //El directorio del procesador
+    public static int[][] directorio; //El directorio del procesador
     public static boolean directorioBloqueado; //Booleana que determina si el directorio esta bloqueado o no
-    private List<int[]> contexto = new ArrayList<int[]>(); //Permanece vacio hasta el primer cambio de contexto
-    public static boolean contextoBloqueado; //Booleana que determina si el contexto esta bloqueado o no
+    public static List<int[]> contexto = new ArrayList<int[]>(); //Permanece vacio hasta el primer cambio de contexto
+    public static int cantidadContextos; //Cantidad de filas guardadas en la matriz de contextos
     public static List<Hilillo> colaHilillos = new ArrayList<Hilillo>(); //Cola circular de hililos
     public static boolean colaHilillosBloqueada; //Booleana que determina si la cola de hilillos esta bloqueada o no
 
@@ -33,6 +33,7 @@ public class Procesador
     	memInstrucciones = new int [tamanoMemoriaI];
     	directorio = new int [tamanoMemoriaD / 4][5];
     	directorioBloqueado = false;
+    	cantidadContextos = 0;
     	
     	for(int i = 0; i < tamanoCache; i++)
 	    {
@@ -163,4 +164,5 @@ public class Procesador
         }
     	System.out.println();
     }
+    
 }

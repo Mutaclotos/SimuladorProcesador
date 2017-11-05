@@ -37,4 +37,9 @@ public class Hilillo
 	{
 		return cantidadInstrucciones;
 	}
+	
+	public int getEtiqueta()
+	{
+		return etiqueta;
+	}
 }
