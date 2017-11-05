@@ -16,7 +16,7 @@ public class Nucleo extends Thread
     private int[] registro;
     public int[] cacheDatos;
     public static boolean cacheBloqueada; //Booleana que determina si la cache de datos esta bloqueada o no
-    public static boolean hiloTerminado; //Booleana que determina si el nucleo esta listo para terminar su ejecucion
+    public static int hilosTerminados; //Booleana que determina si el nucleo esta listo para terminar su ejecucion
     
     /**
      * Constructor for objects of class Nucleo
@@ -27,7 +27,7 @@ public class Nucleo extends Thread
         this.nombre = nombre;
         registro = new int[32];
         cacheDatos = new int[24];
-        hiloTerminado = false;
+        hilosTerminados = 0;
         cacheBloqueada = false;
         //Se inicializa el registro en 0
         for(int i = 0;i < 32; i++)
@@ -63,14 +63,18 @@ public class Nucleo extends Thread
     
     public synchronized void esperarTerminacion()
     {
-    	hiloTerminado = true;
-    	try 
+    	hilosTerminados++;
+    	if(hilosTerminados < 3)
     	{
-           wait();
-        } catch (InterruptedException e) 
-    	{
-           e.printStackTrace();
-        }
+    		try 
+        	{
+               wait();
+            } catch (InterruptedException e) 
+        	{
+               e.printStackTrace();
+            }
+    	}
+    	
     	System.out.println("Hilo " + this.nombre + " terminado.");
     	notifyAll();
     	
