@@ -37,5 +37,20 @@ public class Controlador
       
     }
 
-    
+   public void avanzarReloj()
+   {
+	   while(hilosTerminados < 3)
+	      {
+	    	  if(hilosListosParaTic == 3)
+	    	  {
+	    		  reloj++;
+	    		  hilosListosParaTic = 0;
+	    	  }
+	      }
+   } 
+   
+   public void imprimirResultador()
+   {
+	   
+   } 
 }
