@@ -53,36 +53,19 @@ public class Nucleo extends Thread
     public void simularNucleo()
     {
     	System.out.println("Comenzando simulacion de Nucleo " + nombre + ".");
-    	while(!Procesador.colaHilillos.isEmpty())
+    	while(!Procesador.colaContextos.isEmpty())
     	{
-    		int hililloAEjecutar;
-    		synchronized(Procesador.colaHilillos) //Si la cola de hilillos no está bloqueada, bloquearla
+    		int etiqueta;
+    		synchronized(Procesador.colaContextos) //Si la cola de contextos no está bloqueada, bloquearla
     		{
-    			/*try 
-            	{
-    				Procesador.colaHilillos.wait();
-                } catch (InterruptedException e) 
-            	{
-                   e.printStackTrace();
-                }*/
-    			hililloAEjecutar = copiarAMemoriaInstrucciones();
+    			etiqueta = Procesador.colaContextos.get(0).getEtiqueta();
+    			copiarARegistro(Procesador.colaContextos.get(0)); //Se copian los valores del contexto al registro
+    			pc = Procesador.colaContextos.get(0).getPc();
         		
         		actualizarCola();
     		}
-    		
-    		synchronized(Procesador.contexto) //Si el contexto no está bloqueado, bloquearlo
-    		{
-    			if(Procesador.cantidadContextos > 0)
-    			{
-    				buscarContexto(hililloAEjecutar);
-    			}
-    		}
 
-    		//Procesador.colaHilillosBloqueada = true; //Si la cola de hilillos no está bloqueada, bloquearla
-    		
-    		//Procesador.colaHilillosBloqueada = false; //Se libera la cola de hilillos
-    		//notifyAll();
-    		esperarAvanceTic();
+    		//esperarAvanceTic();
     	}
     	esperarTerminacion();
     }
@@ -130,52 +113,17 @@ public class Nucleo extends Thread
     	
     }
     
-    public void buscarContexto(int etiqueta)
+    //Metodo que copia los valores del primer contexto de la cola de contextos al registro del nucleo
+    private void copiarARegistro(Contexto contexto)
     {
-    	int[] contextoActual;
-    	for(int i = 0; i < Procesador.cantidadContextos; i++)
-    	{
-    		contextoActual = Procesador.contexto.get(i);
-    		if(contextoActual[0] == etiqueta) //Solo se cargan los registros y pc del hilillo correspondiente
-    		{
-    			this.pc = contextoActual[1];
-    			for(int j = 0; j < registro.length; j++)
-    	    	{
-    				registro[j] = contextoActual[j + 2];
-    	    	}
-    		}
-    		
-    	}
-    }
-    
-    //Copia todas las instrucciones de un hilillo a la memoria local de instrucciones de un procesador
-    private int copiarAMemoriaInstrucciones()
-    {
-    	int cantidad = Procesador.colaHilillos.get(0).getCantidadInst();
-    	int etiqueta = Procesador.colaHilillos.get(0).getEtiqueta();
-    	int[] instruccion;
-    	int indice = 0;
-    	int index = 0;
-    	//TODO: Actualizar pc
-    	for(int i = pc; i < cantidad; i++)
-        {
-    		instruccion = Procesador.colaHilillos.get(0).getInstruccion(i); //Solo se copian las instrucciones de la cabeza de la cola
-    		for(int j = indice; j < indice + 4; j++)
-            {
-        		Procesador.memInstrucciones[indice] = instruccion[index];
-        		index++;
-            }
-    		indice = indice + 4;
-    		index = 0;
-        }
-    	return etiqueta;
+    	registro = contexto.getRegistros();
     }
     
     //Remueve la cabeza de la cola y la añade al final
     private void actualizarCola()
     {
-    	Hilillo cabeza = Procesador.colaHilillos.remove(0);
-    	Procesador.colaHilillos.add(cabeza);
+    	Contexto cabeza = Procesador.colaContextos.remove(0);
+    	Procesador.colaContextos.add(cabeza);
     }
     
 

@@ -16,10 +16,10 @@ public class Procesador
 {
     private int[] cacheInstrucciones; //El cache de instrucciones del procesador
     public static int[] memInstrucciones; //La memoria local de instrucciones del procesador
+    public static int[] memDatos; //La memoria compartida de datos del procesador
     public static int[][] directorio; //El directorio del procesador
     public static List<int[]> contexto = new ArrayList<int[]>(); //Permanece vacio hasta el primer cambio de contexto
-    public static int cantidadContextos; //Cantidad de filas guardadas en la matriz de contextos
-    public static List<Hilillo> colaHilillos = new ArrayList<Hilillo>(); //Cola circular de hililos
+    public static List<Contexto> colaContextos = new ArrayList<Contexto>(); //Cola circular de hililos
 
     /**
      * Constructor for objects of class Procesador
@@ -29,8 +29,8 @@ public class Procesador
     	//Se inicializan estructuras de datos
     	cacheInstrucciones = new int [tamanoCache];
     	memInstrucciones = new int [tamanoMemoriaI];
+    	memDatos = new int [tamanoMemoriaD];
     	directorio = new int [tamanoMemoriaD / 4][5];
-    	cantidadContextos = 0;
     	
     	for(int i = 0; i < tamanoCache; i++)
 	    {
@@ -41,6 +41,11 @@ public class Procesador
 	    {
     		memInstrucciones[i] = 0;
 	    }
+    	
+    	for(int i = 0; i < tamanoMemoriaD; i++)
+	 	{
+	        memDatos[i] = 0;
+	 	}
     	
     	for(int i = 0; i < directorio.length; i++)
 	    {
@@ -82,9 +87,9 @@ public class Procesador
        
     }
     
-    public void llenarColaHilillos(Hilillo hilillo)
+    public void llenarcolaContextos(Contexto hilillo)
     {
-    	colaHilillos.add(hilillo);
+    	colaContextos.add(hilillo);
     }
     
     public void imprimirMatriz(int matriz[][])
@@ -106,38 +111,29 @@ public class Procesador
         BufferedReader br = new BufferedReader(new FileReader(archivo));
         String line = br.readLine();
         int contador = 0;
-        int cantidad = 0;
-        
-        Hilillo hilillo = new Hilillo(contador); //Se crea un nuevo hilillo para insertar las instrucciones leidas en el primer programa
+        int indice = 0;
+        Contexto contexto = new Contexto(contador); //Se crea un nuevo contexto vacio
         
         while(line != null)
         {
             //System.out.println(line);
             int[] instruccion = convertirLinea(line);
-            hilillo.cargarInstrucciones(instruccion);
-            
-            if(instruccion[0] == 63 && br.readLine() != null) //Si un programa se termina
+            guardarInstrucciones(instruccion, indice);
+            indice = indice + 4; //Se avanza el indice de la memoria de instrucciones para guardar la siguiente instruccion
+            if(instruccion[0] == 63 && br.readLine() != null) //Si un programa se termina y el texto aun no termina, se crea un nuevo contexto
             {
             	contador++;
-            	llenarColaHilillos(hilillo); //Se inserta el hilillo en la cola de hilillos
-            	cantidad = 0;
-            	hilillo = new Hilillo(contador);
+            	llenarcolaContextos(contexto); //Se inserta el contexto en la cola de contexto
+            	contexto = new Contexto(contador);
             }
-            else
-            {
-            	cantidad++;
-            	hilillo.setCantidadInst(cantidad);
-            	System.out.println("Instruccion añadida al hilillo: ");
-            	imprimirArreglo(hilillo.getInstruccion(cantidad - 1), 4);
-            	//System.out.println("Cantidad instrucciones hilillo: " + hilillo.getCantidadInst());
-            }
+
             line = br.readLine(); 
         }
         
         
-        int size = colaHilillos.size();
+        int size = colaContextos.size();
         //System.out.println("Tamaño cola de hilillos: " + size);
-        //imprimirArreglo(colaHilillos.get(0).getInstruccion(0), 4);
+        //imprimirArreglo(colaContextos.get(0).getInstruccion(0), 4);
         br.close();
     }
     
@@ -151,6 +147,15 @@ public class Procesador
     	}
     	//imprimirArreglo(instrucciones, 4);
     	return instrucciones;
+    }
+    
+    //Metodo que copia las instrucciones leidas del documento de texto a la memoria de instrucciones de cada procesador
+    public void guardarInstrucciones(int[] instruccion, int indice)
+    {
+    	for(int i = 0; i < instruccion.length; i++)
+        {
+    		memInstrucciones[i + indice] = instruccion[i];
+        }
     }
     
     public void imprimirArreglo(int[] arreglo, int tamano)
