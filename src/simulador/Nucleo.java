@@ -56,7 +56,7 @@ public class Nucleo extends Thread
     	while(!Procesador.colaContextos.isEmpty())
     	{
     		int etiqueta;
-    		synchronized(Procesador.colaContextos) //Si la cola de contextos no está bloqueada, bloquearla
+    		synchronized(Procesador.colaContextos) //Si la cola de contextos no estï¿½ bloqueada, bloquearla
     		{
     			etiqueta = Procesador.colaContextos.get(0).getEtiqueta();
     			copiarARegistro(Procesador.colaContextos.get(0)); //Se copian los valores del contexto al registro
@@ -119,7 +119,7 @@ public class Nucleo extends Thread
     	registro = contexto.getRegistros();
     }
     
-    //Remueve la cabeza de la cola y la añade al final
+    //Remueve la cabeza de la cola y la aï¿½ade al final
     private void actualizarCola()
     {
     	Contexto cabeza = Procesador.colaContextos.remove(0);
@@ -134,5 +134,30 @@ public class Nucleo extends Thread
     		System.out.print(arreglo[i] + ", ");
         }
     	System.out.println();
+    }
+    
+    public void ejecutar() {
+    	int op = 0;
+    	int o1 = 0;
+    	int o2 = 0;
+    	int o3 = 0;
+    	
+    	switch (op) {
+    	case 8: // daddi
+    		this.registro[o1] = this.registro[o2] + o3;
+    		break;
+    	case 32: // dadd
+    		this.registro[o1] = this.registro[o2] + this.registro[o3];
+    		break;
+    	case 34: // dsub
+    		this.registro[o1] = this.registro[o2] - this.registro[o3];
+    		break;
+    	case 12: // dmul
+    		this.registro[o1] = this.registro[o2] * this.registro[o3];
+    		break;
+    	case 14: // ddiv
+    		this.registro[o1] = this.registro[o2] / this.registro[o3];
+    		break;
+    	}
     }
 }
