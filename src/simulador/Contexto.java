@@ -11,6 +11,7 @@ public class Contexto
 	public float tiempoEjecucion;
 	public int numeroCiclos;
 	public int pc;
+	public int direccionMemoria;
 	
 	public Contexto(int etiqueta)
 	{
@@ -18,6 +19,7 @@ public class Contexto
 		registros = new int[32];
 		tiempoEjecucion = 0;
 		numeroCiclos = 0;
+		direccionMemoria = -1;
 		pc = 0;
 		
 		for(int i = 0; i < registros.length; i++)
@@ -70,6 +72,16 @@ public class Contexto
 	public void setPc(int pc)
 	{
 		this.pc = pc;
+	}
+	
+	public int getDireccion()
+	{
+		return direccionMemoria;
+	}
+	
+	public void setDireccion(int direccionMemoria)
+	{
+		this.direccionMemoria = direccionMemoria;
 	}
 	
 	public float getTiempoEjecucion()

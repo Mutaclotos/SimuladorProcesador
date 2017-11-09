@@ -17,6 +17,11 @@ public class Nucleo extends Thread
     private int[] registro;
     public int[][] cacheDatos;
     
+  //Variables de informacion de cache de datos
+    public int posicionCacheX;
+    public int posicionCacheY;
+    public int etiquetaBloque;
+    public int estadoBloque;
     
     /**
      * Constructor for objects of class Nucleo
@@ -28,6 +33,12 @@ public class Nucleo extends Thread
         this.nombre = nombre;
         registro = new int[32];
         cacheDatos = new int[4][6];
+        
+        posicionCacheX = 0;
+    	posicionCacheY = 0;
+    	etiquetaBloque = -1;
+    	estadoBloque = 0;
+    	
         //Se inicializa el registro en 0
         for(int i = 0;i < 32; i++)
         {
@@ -141,6 +152,17 @@ public class Nucleo extends Thread
     
     	}
     }
+
+    //Metodo que obtiene los indices y valores de un dato en la cache de datos
+    public void getInformacionCacheD(int numBloqueCache, int palabra)
+    {
+    	posicionCacheX = numBloqueCache;
+    	posicionCacheY = palabra;
+    	etiquetaBloque = cacheDatos[numBloqueCache][4]; //La etiqueta de un bloque se guarda en la quinta fila de la matriz
+    	estadoBloque = cacheDatos[numBloqueCache][5]; //El estado de un bloque se guarda en la sexta fila de la matriz
+    }
+    
+
     //Metodo encargado de ejecutar la operacion descrita en una instruccion
     public void ejecutarOperacion(int[] instruccion)
     {
