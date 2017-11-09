@@ -14,12 +14,12 @@ import java.util.List;
  */
 public class Procesador
 {
-    private int[] cacheInstrucciones; //El cache de instrucciones del procesador
+    private int[][] cacheInstrucciones; //El cache de instrucciones del procesador
     public static int[] memInstrucciones; //La memoria local de instrucciones del procesador
     public static int[] memDatos; //La memoria compartida de datos del procesador
     public static int[][] directorio; //El directorio del procesador
-    public static List<int[]> contexto = new ArrayList<int[]>(); //Permanece vacio hasta el primer cambio de contexto
-    public static List<Contexto> colaContextos = new ArrayList<Contexto>(); //Cola circular de hililos
+    public static List<Contexto> colaContextos = new ArrayList<Contexto>(); //Cola circular de contextos
+    public static List<Contexto> matrizContextos = new ArrayList<Contexto>(); //Matriz que guarda los contextos finales de cada hilillo para ser desplegados al final de la simulacion
 
     /**
      * Constructor for objects of class Procesador
@@ -27,15 +27,18 @@ public class Procesador
     public Procesador(int cantidadNucleos, int tamanoCache, int tamanoMemoriaI, int tamanoMemoriaD, String archivo)
     {
     	//Se inicializan estructuras de datos
-    	cacheInstrucciones = new int [tamanoCache];
+    	cacheInstrucciones = new int [4][tamanoCache];
     	memInstrucciones = new int [tamanoMemoriaI];
     	memDatos = new int [tamanoMemoriaD];
     	directorio = new int [tamanoMemoriaD / 4][5];
     	
-    	for(int i = 0; i < tamanoCache; i++)
-	    {
-    		cacheInstrucciones[i] = 0;
-	    }
+    	for(int i = 0; i < cacheInstrucciones.length; i++)
+        {
+        	for(int j = 0; j < cacheInstrucciones[i].length; j++)
+            {
+	        	cacheInstrucciones[i][j] = 0;
+            }
+        }
     	
     	for(int i = 0; i < tamanoMemoriaI; i++)
 	    {
@@ -120,7 +123,7 @@ public class Procesador
             int[] instruccion = convertirLinea(line);
             guardarInstrucciones(instruccion, indice);
             indice = indice + 4; //Se avanza el indice de la memoria de instrucciones para guardar la siguiente instruccion
-            if(instruccion[0] == 63 && br.readLine() != null) //Si un programa se termina y el texto aun no termina, se crea un nuevo contexto
+            if(instruccion[0] == 63) //Si un hilillo se termina, se crea un nuevo contexto
             {
             	contador++;
             	llenarcolaContextos(contexto); //Se inserta el contexto en la cola de contexto
@@ -128,8 +131,8 @@ public class Procesador
             }
 
             line = br.readLine(); 
-        }
-        
+         }
+        llenarcolaContextos(contexto); //Se inserta el ultimo contexto en la cola de contexto
         
         int size = colaContextos.size();
         //System.out.println("Tamaño cola de hilillos: " + size);
