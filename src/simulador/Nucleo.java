@@ -103,6 +103,7 @@ public class Nucleo extends Thread
     
     public void esperarTerminacion()
     {
+    	synchronized(this){
     	Controlador.hilosTerminados++;
     	if(Controlador.hilosTerminados < 3)
     	{
@@ -117,11 +118,12 @@ public class Nucleo extends Thread
     	
     	System.out.println("Hilo de nucleo " + this.nombre + " terminado.");
     	this.notifyAll();
-    	
+    	}	
     }
     
     public void esperarAvanceTic()
     {
+    	synchronized(this){
     	Controlador.hilosListosParaTic++;
     	if(Controlador.hilosListosParaTic < 3)
     	{
@@ -136,8 +138,9 @@ public class Nucleo extends Thread
     	
     	System.out.println("Todos los hilos listos para el avance de tic.");
     	this.notifyAll();
-    }
     
+    	}
+    }
     //Metodo encargado de ejecutar la operacion descrita en una instruccion
     public void ejecutarOperacion(int[] instruccion)
     {
