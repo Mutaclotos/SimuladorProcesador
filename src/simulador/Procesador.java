@@ -14,12 +14,14 @@ import java.util.List;
  */
 public class Procesador
 {
-    private int[][] cacheInstrucciones; //El cache de instrucciones del procesador
+    public static int[][] cacheInstrucciones; //El cache de instrucciones del procesador
     public static int[] memInstrucciones; //La memoria local de instrucciones del procesador
     public static int[] memDatos; //La memoria compartida de datos del procesador
     public static int[][] directorio; //El directorio del procesador
     public static List<Contexto> colaContextos = new ArrayList<Contexto>(); //Cola circular de contextos
     public static List<Contexto> matrizContextos = new ArrayList<Contexto>(); //Matriz que guarda los contextos finales de cada hilillo para ser desplegados al final de la simulacion
+    
+    public static int nombre;
     
     //Variables de informacion de cache de instrucciones
     public int posicionCacheX;
@@ -36,6 +38,15 @@ public class Procesador
     	memInstrucciones = new int [tamanoMemoriaI];
     	memDatos = new int [tamanoMemoriaD];
     	directorio = new int [tamanoMemoriaD / 4][5];
+    	
+    	if(archivo.equals("p0.txt"))
+    	{
+    		nombre = 0;
+    	}
+    	else
+    	{
+    		nombre = 1;
+    	}
     	
     	posicionCacheX = 0;
     	posicionCacheY = 0;
@@ -104,40 +115,13 @@ public class Procesador
     	colaContextos.add(contexto);
     }
     
-    //Metodo que convierte una direccion de memoria a un numero de bloque
-    public int convertirDireccionANumBloque(int direccionMem)
-    {
-    	return direccionMem / 16; //El tamaño de bloque de la cache de instrucciones es 16
-    }
-    
-  //Metodo que convierte una direccion de memoria a una posicion de cache
-    public int convertirDireccionAPosicionCache(int direccionMem)
-    {
-    	return convertirDireccionANumBloque(direccionMem) % 4; //En una cache hay 4 bloques 
-    }
-    
-  //Metodo que convierte una direccion de memoria a una palabra
-    public int convertirDireccionANumPalabra(int direccionMem)
-    {
-    	return (direccionMem % 4) / 4;
-    }
-    
     //Metodo que convierte un numero de bloque y palabra a una direccion en la memoria de datos
     public int convertirADireccionMemoriaDatos(int numBloqueMem, int palabra)
     {
     	return numBloqueMem * 4 + palabra;
     }
     
-  //Metodo que convierte un numero de bloque y palabra a una direccion en la memoria de instrucciones
-    public int convertirADireccionMemoriaInstrucciones(int numBloqueMem, int palabra, int tamanoMemoria)
-    {
-    	if(tamanoMemoria == 384) //Si la memoria de instrucciones es de P0
-    	{
-    		return (numBloqueMem * 4 - 64 + palabra) * 4;
-    	}
-    	return (numBloqueMem * 4 - 32 + palabra) * 4; //Si la memoria de instrucciones es de P1
-    }
-    
+    //Metodo que imprime una matriz
     public void imprimirMatriz(int matriz[][])
     {
     	for(int i = 0; i < matriz.length; i++)
@@ -159,7 +143,15 @@ public class Procesador
         int contador = 0;
         int indice = 0;
         Contexto contexto = new Contexto(contador); //Se crea un nuevo contexto vacio
-        contexto.setDireccion(indice); //Se guarda la direccion de memoria de la primera instruccion del hilillo
+        if(archivo.equals("p0.txt"))
+        {
+        	indice = indice + 256; //Para P0, la memoria de instrucciones empieza en la direccion 256
+        }										
+        else
+        {
+        	indice = indice + 128; //Para P1, la memoria de instrucciones empieza en la direccion 128
+        }
+        contexto.setPc(indice); //Se guarda la direccion de memoria de la primera instruccion del hilillo
         
         while(line != null)
         {
@@ -173,7 +165,7 @@ public class Procesador
             	contador++;
             	llenarcolaContextos(contexto); //Se inserta el contexto en la cola de contexto
             	contexto = new Contexto(contador);
-            	contexto.setDireccion(indice);
+            	contexto.setPc(indice);
             }
 
             line = br.readLine(); 
@@ -205,14 +197,6 @@ public class Procesador
         {
     		memInstrucciones[i + indice] = instruccion[i];
         }
-    }
-    
-    //Metodo que retorna los indices y etiqueta de una instruccion de la cache de instrucciones
-    public void getInformacionCacheI(int numBloqueCache, int palabra)
-    {
-    	posicionCacheX = numBloqueCache * 4;
-    	posicionCacheY = palabra;
-    	etiquetaBloque = cacheInstrucciones[numBloqueCache * 4][4]; //La etiqueta de un bloque se guarda en la quinta fila de la matriz
     }
     
     public void imprimirArreglo(int[] arreglo, int tamano)
