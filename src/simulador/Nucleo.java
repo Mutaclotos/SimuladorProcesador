@@ -76,6 +76,8 @@ public class Nucleo extends Thread
     			instruccion = getInstruccion(); //Se agarra la siguiente instruccion del hilillo
     		}
     		
+    		quantum = Controlador.quantum; //Se resetea el valor del quantum
+    		
     		if(instruccion[0] == 63) //Si se llego a la instruccion FIN, se saca el contexto del hilillo de la cola de contextos
 			{
     			synchronized(Procesador.colaContextos)
@@ -87,7 +89,6 @@ public class Nucleo extends Thread
 			}
     		else //Si se acabó el quantum para este hilillo, se realiza un cambio de contexto
     		{
-    			quantum = Controlador.quantum; //Se resetea el valor del quantum
     			synchronized(Procesador.colaContextos)
     			{
     				copiarAContexto(Procesador.colaContextos.get(etiqueta)); //Se copian los valores de registro y pc al contexto relevante
