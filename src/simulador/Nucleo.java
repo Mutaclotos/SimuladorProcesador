@@ -181,12 +181,7 @@ public class Nucleo extends Thread
     	System.out.println();
     }
     
-    public void ejecutar() {
-    	int op = 0;
-    	int o1 = 0;
-    	int o2 = 0;
-    	int o3 = 0;
-    	
+    public void ejecutar(int op, int o1, int o2, int o3) {    	
     	switch (op) {
     	case 8: // daddi
     		this.registro[o1] = this.registro[o2] + o3;
