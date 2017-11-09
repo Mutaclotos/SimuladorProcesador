@@ -16,6 +16,7 @@ public class Controlador
 	public static int hilosTerminados; //Determina la cantidad de nucleos listos para terminar su terminacion
 	public static int hilosListosParaTic;
 	public static int reloj;
+	public static int quantum; //El valor del quantum ingresado por el usuario
     Procesador procesador;
     /**
      * Constructor for objects of class main

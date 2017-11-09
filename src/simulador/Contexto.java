@@ -41,6 +41,12 @@ public class Contexto
 		return registros;
 	}
 	
+	//Reemplaza los valores de registros del contexto con los valores del arreglo de entrada
+	public void setRegistros(int[] registros)
+	{
+		System.arraycopy(registros, 0, this.registros, 0, registros.length);
+	}
+	
 	public int getEtiqueta()
 	{
 		return etiqueta;
