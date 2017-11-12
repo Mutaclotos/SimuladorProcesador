@@ -22,7 +22,7 @@ public class Nucleo extends Thread
     private int[] registro;
     public int[][] cacheDatos;
    
-    
+    Procesador procesador;
   //Variables de informacion de cache de datos
     public int posicionCacheX;
     public int posicionCacheY;
@@ -33,7 +33,7 @@ public class Nucleo extends Thread
     /**
      * Constructor for objects of class Nucleo
      */
-    public Nucleo(int nombre, int nombreP) 
+    public Nucleo(int nombre, Procesador procesador) 
     {
         pc = 0;
         quantum = 0;
@@ -41,6 +41,8 @@ public class Nucleo extends Thread
         this.nombre = nombre;
         registro = new int[32];
         cacheDatos = new int[4][6];
+        
+        this.procesador = procesador;
         
         posicionCacheX = 0;
     	posicionCacheY = 0;
@@ -76,14 +78,14 @@ public class Nucleo extends Thread
     {
     	System.out.println("Comenzando simulacion de Nucleo " + nombre + " del Procesador " + nombreP);
     	
-    	while(!Procesador.colaContextos.isEmpty())
+    	while(!procesador.colaContextos.isEmpty())
     	{
     		
-    		synchronized(Procesador.colaContextos) //Si la cola de contextos no estï¿½ bloqueada, bloquearla
+    		synchronized(procesador.colaContextos) //Si la cola de contextos no estï¿½ bloqueada, bloquearla
     		{
-    			etiquetaContexto = Procesador.colaContextos.get(0).getEtiqueta(); //Se obtiene la etiqueta de un contexto
-    			copiarARegistro(Procesador.colaContextos.get(0)); //Se copian los valores del contexto al registro
-    			pc = Procesador.colaContextos.get(0).getPc(); //Se actualiza el pc con el valor de dicho contexto
+    			etiquetaContexto = procesador.colaContextos.get(0).getEtiqueta(); //Se obtiene la etiqueta de un contexto
+    			copiarARegistro(procesador.colaContextos.get(0)); //Se copian los valores del contexto al registro
+    			pc = procesador.colaContextos.get(0).getPc(); //Se actualiza el pc con el valor de dicho contexto
         		
         		actualizarCola(); //Se saca el contexto de la cabeza de la cola y se aï¿½ade al final
     		}
@@ -100,18 +102,18 @@ public class Nucleo extends Thread
     		
     		if(instruccion[0] == 63) //Si se llego a la instruccion FIN, se saca el contexto del hilillo de la cola de contextos
 			{
-    			synchronized(Procesador.colaContextos)
+    			synchronized(procesador.colaContextos)
     			{
-    				Contexto contextoRemovido = Procesador.colaContextos.remove(etiquetaContexto); //Se elimina el contexto del hilillo de la cola de contextos
-    				Procesador.matrizContextos.add(contextoRemovido); //El contexto eliminado es incluido en la matriz de contextos para ser desplegado al final de la simulacion
+    				Contexto contextoRemovido = procesador.colaContextos.remove(etiquetaContexto); //Se elimina el contexto del hilillo de la cola de contextos
+    				procesador.matrizContextos.add(contextoRemovido); //El contexto eliminado es incluido en la matriz de contextos para ser desplegado al final de la simulacion
     				System.out.println("Ejecucion de hilillo " + etiquetaContexto + " finalizada.");
     			}
 			}
     		else //Si se acabï¿½ el quantum para este hilillo, se realiza un cambio de contexto
     		{
-    			synchronized(Procesador.colaContextos)
+    			synchronized(procesador.colaContextos)
     			{
-    				copiarAContexto(Procesador.colaContextos.get(etiquetaContexto)); //Se copian los valores de registro y pc al contexto relevante
+    				copiarAContexto(procesador.colaContextos.get(etiquetaContexto)); //Se copian los valores de registro y pc al contexto relevante
     				System.out.println("Cambio de contexto del nucleo " + nombre + " del Procesador " + nombreP);
     			}
     			
@@ -219,7 +221,7 @@ public class Nucleo extends Thread
     {
     	posicionCacheX = numBloqueCache * 4;
     	posicionCacheY = palabra;
-    	etiquetaBloque = Procesador.cacheInstrucciones[numBloqueCache * 4][4]; //La etiqueta de un bloque se guarda en la quinta fila de la matriz
+    	etiquetaBloque = procesador.cacheInstrucciones[numBloqueCache * 4][4]; //La etiqueta de un bloque se guarda en la quinta fila de la matriz
     }
 
     //Metodo encargado de ejecutar la operacion descrita en una instruccion
@@ -241,7 +243,7 @@ public class Nucleo extends Thread
     		resolverFalloCacheI();
     	}
     	//Se copia la instruccion de cache a la variable
-    	System.arraycopy(Procesador.cacheInstrucciones[posicionCacheX], posicionCacheY, instruccion, 0, instruccion.length );
+    	System.arraycopy(procesador.cacheInstrucciones[posicionCacheX], posicionCacheY, instruccion, 0, instruccion.length );
     	
     	return instruccion;
     }
@@ -251,9 +253,9 @@ public class Nucleo extends Thread
     {
     	//Se deben bloquear tanto la cache de instrucciones como la memoria de instrucciones
     	//TODO: Revisar esto
-    	synchronized(Procesador.cacheInstrucciones)
+    	synchronized(procesador.cacheInstrucciones)
     	{
-    		synchronized(Procesador.memInstrucciones)
+    		synchronized(procesador.memInstrucciones)
         	{
     			copiarAcacheInstrucciones();
         	}
@@ -263,8 +265,8 @@ public class Nucleo extends Thread
     //Metodo que copia una instruccion de la memoria de instrucciones a la cache de instrucciones
     private void copiarAcacheInstrucciones()
     {
-    	System.arraycopy(Procesador.memInstrucciones, convertirPC(), Procesador.cacheInstrucciones[posicionCacheY], 0, Procesador.cacheInstrucciones[posicionCacheY].length );
-    	Procesador.cacheInstrucciones[convertirDireccionAPosicionCache(pc) * 4][4] = etiquetaContexto; //Se actualiza la etiqueta del bloque
+    	System.arraycopy(procesador.memInstrucciones, convertirPC(), procesador.cacheInstrucciones[posicionCacheY], 0, procesador.cacheInstrucciones[posicionCacheY].length );
+    	procesador.cacheInstrucciones[convertirDireccionAPosicionCache(pc) * 4][4] = etiquetaContexto; //Se actualiza la etiqueta del bloque
     }
     
     //Metodo que copia los registros del primer contexto de la cola de contextos al registro del nucleo
@@ -292,8 +294,8 @@ public class Nucleo extends Thread
     //Remueve la cabeza de la cola y la añade al final
     private void actualizarCola()
     {
-    	Contexto cabeza = Procesador.colaContextos.remove(0);
-    	Procesador.colaContextos.add(cabeza);
+    	Contexto cabeza = procesador.colaContextos.remove(0);
+    	procesador.colaContextos.add(cabeza);
     }
     
     private void setNombreProcesador(int nombre)

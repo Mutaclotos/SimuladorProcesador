@@ -14,12 +14,12 @@ import java.util.List;
  */
 public class Procesador
 {
-    public static int[][] cacheInstrucciones; //El cache de instrucciones del procesador
-    public static int[] memInstrucciones; //La memoria local de instrucciones del procesador
-    public static int[] memDatos; //La memoria compartida de datos del procesador
-    public static int[][] directorio; //El directorio del procesador
-    public static List<Contexto> colaContextos = new ArrayList<Contexto>(); //Cola circular de contextos
-    public static List<Contexto> matrizContextos = new ArrayList<Contexto>(); //Matriz que guarda los contextos finales de cada hilillo para ser desplegados al final de la simulacion
+    public int[][] cacheInstrucciones; //El cache de instrucciones del procesador
+    public int[] memInstrucciones; //La memoria local de instrucciones del procesador
+    public int[] memDatos; //La memoria compartida de datos del procesador
+    public int[][] directorio; //El directorio del procesador
+    public List<Contexto> colaContextos = new ArrayList<Contexto>(); //Cola circular de contextos
+    public List<Contexto> matrizContextos = new ArrayList<Contexto>(); //Matriz que guarda los contextos finales de cada hilillo para ser desplegados al final de la simulacion
     
     public static int nombre;
     
@@ -31,7 +31,7 @@ public class Procesador
     /**
      * Constructor for objects of class Procesador
      */
-    public Procesador(int cantidadNucleos, int tamanoCache, int tamanoMemoriaI, int tamanoMemoriaD, String archivo)
+    public Procesador(int tamanoCache, int tamanoMemoriaI, int tamanoMemoriaD, String archivo)
     {
     	//Se inicializan estructuras de datos
     	cacheInstrucciones = new int [tamanoCache][5];
@@ -92,21 +92,6 @@ public class Procesador
     	{
     		leerArchivo(archivo); //Se lee el archivo indicado para cargar las instrucciones a la cola de hilillos
     	}catch(IOException e){}
-    	
-    	
-	    for(int i=0; i < cantidadNucleos; i++)
-	    {
-	    	Nucleo nucleo = new Nucleo(i, nombre)
-	    	{
-	    	    public void run()
-	    	    {
-	    	    	simularNucleo();
-	    	      //System.out.println("Nucleo de procesador");
-	    	    }
-	    	};
-
-	    	nucleo.start();
-	    }
        
     }
     
@@ -197,6 +182,11 @@ public class Procesador
         {
     		memInstrucciones[i + indice] = instruccion[i];
         }
+    }
+    
+    public List<Contexto> getColaContextos()
+    {
+    	return colaContextos;
     }
     
     public void imprimirArreglo(int[] arreglo, int tamano)

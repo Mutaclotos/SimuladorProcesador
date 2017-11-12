@@ -30,10 +30,41 @@ public class Principal /*extends threads*/ {
         interfaz();
         //Principal p=new Principal();
         System.out.println("Inicializando procesador 0:");
-        Procesador P0 = new Procesador(2, 16, 384, 64, "p0.txt");
+        Procesador P0 = new Procesador(16, 384, 64, "p0.txt");
         
         System.out.println("Inicializando procesador 1:"); 
-        Procesador P1 = new Procesador(1, 16, 256, 32, "p1.txt");
+        Procesador P1 = new Procesador(16, 256, 32, "p1.txt");
+        
+        Nucleo nucleo0 = new Nucleo(0, P0)
+    	{
+    	    public void run()
+    	    {
+    	    	simularNucleo();
+    	      //System.out.println("Nucleo de procesador");
+    	    }
+    	};
+    	
+    	Nucleo nucleo1 = new Nucleo(1, P0)
+    	{
+    	    public void run()
+    	    {
+    	    	simularNucleo();
+    	      //System.out.println("Nucleo de procesador");
+    	    }
+    	};
+    	
+    	Nucleo nucleo2 = new Nucleo(0, P1)
+    	{
+    	    public void run()
+    	    {
+    	    	simularNucleo();
+    	      //System.out.println("Nucleo de procesador");
+    	    }
+    	};
+
+    	nucleo0.start();
+    	nucleo1.start();
+    	nucleo2.start();
 
         avanzarReloj();
       }
