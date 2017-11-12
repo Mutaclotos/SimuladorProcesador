@@ -12,7 +12,8 @@ public class Nucleo extends Thread
     // instance variables - replace the example below with your own
 
     private int pc;
-    private int nombre;
+    private int nombre; //Nombre del nucleo
+    private int nombreP; //Nombre del procesador al que pertenece este nucleo
     public int quantum;
     private int[] registro;
     public int[][] cacheDatos;
@@ -27,7 +28,7 @@ public class Nucleo extends Thread
     /**
      * Constructor for objects of class Nucleo
      */
-    public Nucleo(int nombre)
+    public Nucleo(int nombre, int nombreP) 
     {
         pc = 0;
         quantum = 0;
@@ -40,6 +41,7 @@ public class Nucleo extends Thread
     	posicionCacheY = 0;
     	etiquetaBloque = -1;
     	estadoBloque = 0;
+    	setNombreProcesador(nombreP);
     	
         //Se inicializa el registro en 0
         for(int i = 0;i < 32; i++)
@@ -67,7 +69,7 @@ public class Nucleo extends Thread
     
     public void simularNucleo()
     {
-    	System.out.println("Comenzando simulacion de Nucleo " + nombre + ".");
+    	System.out.println("Comenzando simulacion de Nucleo " + nombre + " del Procesador " + nombreP);
     	
     	while(!Procesador.colaContextos.isEmpty())
     	{
@@ -105,7 +107,7 @@ public class Nucleo extends Thread
     			synchronized(Procesador.colaContextos)
     			{
     				copiarAContexto(Procesador.colaContextos.get(etiquetaContexto)); //Se copian los valores de registro y pc al contexto relevante
-    				System.out.println("Cambio de contexto del nucleo " + nombre + ".");
+    				System.out.println("Cambio de contexto del nucleo " + nombre + " del Procesador " + nombreP);
     			}
     			
     		}
@@ -260,7 +262,7 @@ public class Nucleo extends Thread
     
     private int convertirPC()
     {
-    	if(Procesador.nombre == 0)
+    	if(nombreP == 0)
     	{
     		return pc - 256;
     	}
@@ -272,6 +274,11 @@ public class Nucleo extends Thread
     {
     	Contexto cabeza = Procesador.colaContextos.remove(0);
     	Procesador.colaContextos.add(cabeza);
+    }
+    
+    private void setNombreProcesador(int nombre)
+    {
+    	this.nombreP = nombre;
     }
     
 

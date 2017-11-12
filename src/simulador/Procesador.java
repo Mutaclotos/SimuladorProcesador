@@ -43,7 +43,7 @@ public class Procesador
     	{
     		nombre = 0;
     	}
-    	else
+    	else if(archivo.equals("p1.txt"))
     	{
     		nombre = 1;
     	}
@@ -96,7 +96,7 @@ public class Procesador
     	
 	    for(int i=0; i < cantidadNucleos; i++)
 	    {
-	    	Nucleo nucleo = new Nucleo(i)
+	    	Nucleo nucleo = new Nucleo(i, nombre)
 	    	{
 	    	    public void run()
 	    	    {
