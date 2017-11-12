@@ -199,5 +199,6 @@ public class Nucleo extends Thread
     		this.registro[o1] = this.registro[o2] / this.registro[o3];
     		break;
     	}
+    	Controlador.hilosListosParaTic++;
     }
 }
