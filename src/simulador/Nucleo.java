@@ -3,7 +3,7 @@ package simulador;
 import java.util.ArrayList;
 import java.util.List;
 
-import sun.applet.Main;
+//import sun.applet.Main;
 
 /**
  * Write a description of class Nucleo here.
