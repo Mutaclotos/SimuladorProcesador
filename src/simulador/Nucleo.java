@@ -262,7 +262,7 @@ public class Nucleo extends Thread
     
     private int convertirPC()
     {
-    	if(nombreP == 0)
+    	if(Procesador.nombre == 0)
     	{
     		return pc - 256;
     	}
