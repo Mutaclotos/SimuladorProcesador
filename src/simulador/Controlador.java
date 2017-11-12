@@ -19,45 +19,57 @@ public class Controlador
 	public static int reloj;
 	public static int quantum; //El valor del quantum ingresado por el usuario
 	public static int tipoModulacion; //El tipo de modo del correr dado por el usuario.
+	//static StringBuilder result= new StringBuilder();
     Procesador procesador;
+    Principal principal;
     /**
      * Constructor for objects of class main
      */
-    public static void main(String[] args)
+    public  static void main(String[] args)
     {
-      hilosTerminados = 0;
-      hilosListosParaTic = 0;
-      reloj = 0;
+      //hilosTerminados = 0;
+     // hilosListosParaTic = 0;
+     // reloj = 0;
       
-      interfaz();
-    	
-      System.out.println("Inicializando procesador 0:");
-      Procesador P0 = new Procesador(2, 16, 384, 64, "p0.txt");
+     // interfaz();
+      Principal p=new Principal();
+      //System.out.println("Inicializando procesador 0:");
+      //Procesador P0 = new Procesador(2, 16, 384, 64, "p0.txt");
       
-      System.out.println("Inicializando procesador 1:"); 
-      Procesador P1 = new Procesador(1, 16, 256, 32, "p1.txt");
+    //  System.out.println("Inicializando procesador 1:"); 
+     // Procesador P1 = new Procesador(1, 16, 256, 32, "p1.txt");
 
-      
+     // avanzarReloj();
     }
-
-   public void avanzarReloj()
+/*
+   private  void avanzarReloj()
    {
 	   while(hilosTerminados < 3)
 	      {
-	    	  if(hilosListosParaTic == 3)
-	    	  {
-	    		  reloj++;
-	    		  hilosListosParaTic = 0;
-	    	  }
-	      }
-   } 
-   
+		   try{
+			 this.wait();
+				      if(hilosListosParaTic == 3)
+			    	  {
+			    		  reloj++;
+			    		  hilosListosParaTic = 0;
+			    		  System.out.println("Hacer tic");
+			    	  } 
+				 
+		   }
+		   catch(InterruptedException e) 
+        	{
+               e.printStackTrace();
+            }
+	    	 
+	    	  
+	      } 
+   }
    public void imprimirResultador()
    {
 	   
    }
    
-   public static void interfaz()
+   public void interfaz()
    {
 	   String input=" ";
 	   boolean entradaValida=false;
@@ -115,5 +127,5 @@ public class Controlador
 				  System.out.println("No se ha ingresado ningun valor.");
 			  }   
 	   }
-   }
+   }*/
 }

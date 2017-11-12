@@ -1,5 +1,9 @@
 package simulador;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import sun.applet.Main;
 
 /**
  * Write a description of class Nucleo here.
@@ -16,6 +20,7 @@ public class Nucleo extends Thread
     public int quantum;
     private int[] registro;
     public int[][] cacheDatos;
+   
     
   //Variables de informacion de cache de datos
     public int posicionCacheX;
@@ -109,14 +114,15 @@ public class Nucleo extends Thread
     		}
     	}
     	//Si la cola de contextos está vacia entonces no hay mas hilillo que ejecutar. El nucleo espera su terminacion.
+    	esperarAvanceTic();
     	esperarTerminacion();
     }
     
     public void esperarTerminacion()
     {
     	synchronized(this){
-    	Controlador.hilosTerminados++;
-    	if(Controlador.hilosTerminados < 3)
+    		Principal.hilosTerminados++;
+    	if(Principal.hilosTerminados < 3)
     	{
     		try 
         	{
@@ -135,11 +141,13 @@ public class Nucleo extends Thread
     public void esperarAvanceTic()
     {
     	synchronized(this){
-    	Controlador.hilosListosParaTic++;
-    	if(Controlador.hilosListosParaTic < 3)
+    		System.out.println("esperarAvanceTic().");
+    	Principal.hilosListosParaTic++;
+    	if(Principal.hilosListosParaTic < 3)
     	{
     		try 
         	{
+    			System.out.println("Hilo esperando.");
                this.wait();
             } catch (InterruptedException e) 
         	{
@@ -148,7 +156,15 @@ public class Nucleo extends Thread
     	}
     	
     	System.out.println("Todos los hilos listos para el avance de tic.");
-    	this.notifyAll();
+    	this.notify();
+    	this.notify();
+    	this.notify();
+    	System.out.println("Se notifico");
+    	System.out.println("Status1: "+Principal.t.getState());
+    	System.out.println("Status2: "+Thread.currentThread().getState());
+    	//Principal.list.notify();
+    	System.out.println("Status: "+Principal.t.getState());
+    	//Principal.result.notify();
     
     	}
     }
