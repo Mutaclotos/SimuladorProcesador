@@ -14,12 +14,19 @@ import java.util.List;
  */
 public class Procesador
 {
-    private int[][] cacheInstrucciones; //El cache de instrucciones del procesador
+    public static int[][] cacheInstrucciones; //El cache de instrucciones del procesador
     public static int[] memInstrucciones; //La memoria local de instrucciones del procesador
     public static int[] memDatos; //La memoria compartida de datos del procesador
     public static int[][] directorio; //El directorio del procesador
     public static List<Contexto> colaContextos = new ArrayList<Contexto>(); //Cola circular de contextos
     public static List<Contexto> matrizContextos = new ArrayList<Contexto>(); //Matriz que guarda los contextos finales de cada hilillo para ser desplegados al final de la simulacion
+    
+    public static int nombre;
+    
+    //Variables de informacion de cache de instrucciones
+    public int posicionCacheX;
+    public int posicionCacheY;
+    public int etiquetaBloque;
 
     /**
      * Constructor for objects of class Procesador
@@ -27,10 +34,23 @@ public class Procesador
     public Procesador(int cantidadNucleos, int tamanoCache, int tamanoMemoriaI, int tamanoMemoriaD, String archivo)
     {
     	//Se inicializan estructuras de datos
-    	cacheInstrucciones = new int [4][tamanoCache];
+    	cacheInstrucciones = new int [tamanoCache][5];
     	memInstrucciones = new int [tamanoMemoriaI];
     	memDatos = new int [tamanoMemoriaD];
     	directorio = new int [tamanoMemoriaD / 4][5];
+    	
+    	if(archivo.equals("p0.txt"))
+    	{
+    		nombre = 0;
+    	}
+    	else if(archivo.equals("p1.txt"))
+    	{
+    		nombre = 1;
+    	}
+    	
+    	posicionCacheX = 0;
+    	posicionCacheY = 0;
+    	etiquetaBloque = -1;
     	
     	for(int i = 0; i < cacheInstrucciones.length; i++)
         {
@@ -76,7 +96,7 @@ public class Procesador
     	
 	    for(int i=0; i < cantidadNucleos; i++)
 	    {
-	    	Nucleo nucleo = new Nucleo(i)
+	    	Nucleo nucleo = new Nucleo(i, nombre)
 	    	{
 	    	    public void run()
 	    	    {
@@ -90,11 +110,18 @@ public class Procesador
        
     }
     
-    public void llenarcolaContextos(Contexto hilillo)
+    public void llenarcolaContextos(Contexto contexto)
     {
-    	colaContextos.add(hilillo);
+    	colaContextos.add(contexto);
     }
     
+    //Metodo que convierte un numero de bloque y palabra a una direccion en la memoria de datos
+    public int convertirADireccionMemoriaDatos(int numBloqueMem, int palabra)
+    {
+    	return numBloqueMem * 4 + palabra;
+    }
+    
+    //Metodo que imprime una matriz
     public void imprimirMatriz(int matriz[][])
     {
     	for(int i = 0; i < matriz.length; i++)
@@ -116,18 +143,29 @@ public class Procesador
         int contador = 0;
         int indice = 0;
         Contexto contexto = new Contexto(contador); //Se crea un nuevo contexto vacio
+        if(archivo.equals("p0.txt"))
+        {
+        	indice = indice + 256; //Para P0, la memoria de instrucciones empieza en la direccion 256
+        }										
+        else
+        {
+        	indice = indice + 128; //Para P1, la memoria de instrucciones empieza en la direccion 128
+        }
+        contexto.setPc(indice); //Se guarda la direccion de memoria de la primera instruccion del hilillo
         
         while(line != null)
         {
             //System.out.println(line);
             int[] instruccion = convertirLinea(line);
             guardarInstrucciones(instruccion, indice);
+            
             indice = indice + 4; //Se avanza el indice de la memoria de instrucciones para guardar la siguiente instruccion
             if(instruccion[0] == 63) //Si un hilillo se termina, se crea un nuevo contexto
             {
             	contador++;
             	llenarcolaContextos(contexto); //Se inserta el contexto en la cola de contexto
             	contexto = new Contexto(contador);
+            	contexto.setPc(indice);
             }
 
             line = br.readLine(); 
