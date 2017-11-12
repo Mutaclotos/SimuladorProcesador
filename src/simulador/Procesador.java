@@ -21,7 +21,7 @@ public class Procesador
     public List<Contexto> colaContextos = new ArrayList<Contexto>(); //Cola circular de contextos
     public List<Contexto> matrizContextos = new ArrayList<Contexto>(); //Matriz que guarda los contextos finales de cada hilillo para ser desplegados al final de la simulacion
     
-    public static int nombre;
+    public int nombre;
     
     //Variables de informacion de cache de instrucciones
     public int posicionCacheX;
@@ -31,22 +31,14 @@ public class Procesador
     /**
      * Constructor for objects of class Procesador
      */
-    public Procesador(int tamanoCache, int tamanoMemoriaI, int tamanoMemoriaD, String archivo)
+    public Procesador(int nombre, int tamanoCache, int tamanoMemoriaI, int tamanoMemoriaD, String archivo)
     {
     	//Se inicializan estructuras de datos
     	cacheInstrucciones = new int [tamanoCache][5];
     	memInstrucciones = new int [tamanoMemoriaI];
     	memDatos = new int [tamanoMemoriaD];
     	directorio = new int [tamanoMemoriaD / 4][5];
-    	
-    	if(archivo.equals("p0.txt"))
-    	{
-    		nombre = 0;
-    	}
-    	else if(archivo.equals("p1.txt"))
-    	{
-    		nombre = 1;
-    	}
+    	this.nombre = nombre;
     	
     	posicionCacheX = 0;
     	posicionCacheY = 0;

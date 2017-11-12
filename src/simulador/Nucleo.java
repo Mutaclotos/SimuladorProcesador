@@ -48,7 +48,8 @@ public class Nucleo extends Thread
     	posicionCacheY = 0;
     	etiquetaBloque = -1;
     	estadoBloque = 0;
-    	setNombreProcesador(nombreP);
+    	
+    	setNombreProcesador(this.procesador.nombre);
     	
         //Se inicializa el registro en 0
         for(int i = 0;i < 32; i++)
@@ -284,7 +285,7 @@ public class Nucleo extends Thread
     
     private int convertirPC()
     {
-    	if(Procesador.nombre == 0)
+    	if(procesador.nombre == 0)
     	{
     		return pc - 256;
     	}
