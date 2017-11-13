@@ -416,9 +416,20 @@ public class Nucleo extends Thread
 							boolean flagDir =  direcP0.tryLock();
 							if(flagDir) {
 								try {
-									
+									Lock bus = new ReentrantLock();
+									boolean flagBus =  bus.tryLock();
+									if(flagBus) {
+										try {
+											System.arraycopy(this.cacheDatos[bCache], 0, this.procesador.memInstrucciones, dirVictima, 4);
+											for(int i = 0; i < 16; i++)
+												esperarAvanceTic();
+											
+										}finally {
+											bus.unlock();
+										}
+									}
 								}finally {
-									
+									direcP0.unlock();
 								}
 							}							
 						}
