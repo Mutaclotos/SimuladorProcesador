@@ -121,7 +121,7 @@ public class Nucleo extends Thread
     		}
     	}
 
-    	//Si la cola de contextos está vacia entonces no hay mas hilillo que ejecutar. El nucleo espera su terminacion.
+    	//Si la cola de contextos estï¿½ vacia entonces no hay mas hilillo que ejecutar. El nucleo espera su terminacion.
     	esperarAvanceTic();
 
     	//Si la cola de contextos estï¿½ vacia entonces no hay mas hilillo que ejecutar. El nucleo espera su terminacion.
@@ -192,7 +192,7 @@ public class Nucleo extends Thread
   //Metodo que convierte una direccion de memoria a un numero de bloque
     public int convertirDireccionANumBloque(int direccionMem)
     {
-    	return direccionMem / 16; //El tamaño de bloque de la cache de instrucciones es 16
+    	return direccionMem / 16; //El tamaï¿½o de bloque de la cache de instrucciones es 16
     }
     
   //Metodo que convierte una direccion de memoria a una posicion de cache
@@ -239,7 +239,7 @@ public class Nucleo extends Thread
     {
     	int[] instruccion = new int[4];
     	//TODO: fetch instruccion de mem y manejar fail de cache
-    	//Se consigue la posicion de la instruccion en la caché de instrucciones junto con su etiqueta dependiendo del pc
+    	//Se consigue la posicion de la instruccion en la cachï¿½ de instrucciones junto con su etiqueta dependiendo del pc
     	getInformacionCacheI(convertirDireccionAPosicionCache(pc), convertirDireccionANumPalabra(pc));
     	
     	//Si el numero de bloque es distinto al numero de hilillo, entonces hay un fallo de cache
@@ -296,7 +296,7 @@ public class Nucleo extends Thread
     	return pc - 128;
     }
     
-    //Remueve la cabeza de la cola y la añade al final
+    //Remueve la cabeza de la cola y la aï¿½ade al final
     private void actualizarCola()
     {
     	Contexto cabeza = procesador.colaContextos.remove(0);
@@ -318,22 +318,43 @@ public class Nucleo extends Thread
     	System.out.println();
     }
     
-    public void ejecutar(int op, int o1, int o2, int o3) {    	
-    	switch (op) {
+    public void ejecutar(int[] ins) {    	
+    	switch (ins[0]) {
     	case 8: // daddi
-    		this.registro[o1] = this.registro[o2] + o3;
+    		this.registro[ins[1]] = this.registro[ins[2]] + ins[3];
     		break;
     	case 32: // dadd
-    		this.registro[o1] = this.registro[o2] + this.registro[o3];
+    		this.registro[ins[1]] = this.registro[ins[2]] + this.registro[ins[3]];
     		break;
     	case 34: // dsub
-    		this.registro[o1] = this.registro[o2] - this.registro[o3];
+    		this.registro[ins[1]] = this.registro[ins[2]] - this.registro[ins[3]];
     		break;
     	case 12: // dmul
-    		this.registro[o1] = this.registro[o2] * this.registro[o3];
+    		this.registro[ins[1]] = this.registro[ins[2]] * this.registro[ins[3]];
     		break;
     	case 14: // ddiv
-    		this.registro[o1] = this.registro[o2] / this.registro[o3];
+    		this.registro[ins[1]] = this.registro[ins[2]] / this.registro[ins[3]];
+    		break;
+    	case 4: // beqz
+    		if(this.registro[ins[1]] == 0)
+    			this.pc += ins[3] * 4;
+    		break;
+    	case 5: // bnez
+    		if(this.registro[ins[1]] != 0)
+    			this.pc += ins[3] * 4;
+    		break;
+    	case 3: // jal
+    		this.registro[31]= this.pc;
+    		this.pc += ins[3];
+    		break;
+    	case 2: // jr
+    		this.pc = this.registro[ins[1]];
+    		break;
+    	case 35: // lw
+    		break;
+    	case 43: // sw
+    		break;
+    	case 63: // fin
     		break;
     	}
     	Controlador.hilosListosParaTic++;
