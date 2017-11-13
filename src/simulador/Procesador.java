@@ -34,7 +34,7 @@ public class Procesador
     public Procesador(int nombre, int tamanoCache, int tamanoMemoriaI, int tamanoMemoriaD, String archivo)
     {
     	//Se inicializan estructuras de datos
-    	cacheInstrucciones = new int [tamanoCache][5];
+    	cacheInstrucciones = new int [5][tamanoCache];
     	memInstrucciones = new int [tamanoMemoriaI];
     	memDatos = new int [tamanoMemoriaD];
     	directorio = new int [tamanoMemoriaD / 4][5];
@@ -48,7 +48,15 @@ public class Procesador
         {
         	for(int j = 0; j < cacheInstrucciones[i].length; j++)
             {
-	        	cacheInstrucciones[i][j] = 0;
+        		if(i == 4)
+        		{
+        			cacheInstrucciones[i][j] = -1;
+        		}
+        		else
+        		{
+        			cacheInstrucciones[i][j] = 0;
+        		}
+	        	
             }
         }
     	
@@ -129,7 +137,9 @@ public class Procesador
         	indice = indice + 128; //Para P1, la memoria de instrucciones empieza en la direccion 128
         }
         contexto.setPc(indice); //Se guarda la direccion de memoria de la primera instruccion del hilillo
-        
+        //System.out.println("Contexto: " + contexto.getPc());
+        //Se resetea el indice
+        indice = 0;
         while(line != null)
         {
             //System.out.println(line);
@@ -142,7 +152,15 @@ public class Procesador
             	contador++;
             	llenarcolaContextos(contexto); //Se inserta el contexto en la cola de contexto
             	contexto = new Contexto(contador);
-            	contexto.setPc(indice);
+            	
+            	if(archivo.equals("p0.txt"))
+                {
+                	contexto.setPc(indice + 256);
+                }										
+                else
+                {
+                	contexto.setPc(indice + 128);
+                }
             }
 
             line = br.readLine(); 
@@ -153,6 +171,9 @@ public class Procesador
         //System.out.println("Tamaño cola de hilillos: " + size);
         //imprimirArreglo(colaContextos.get(0).getInstruccion(0), 4);
         br.close();
+        
+        System.out.println("Memoria de instrucciones del Procesador " + nombre);
+        imprimirArreglo(memInstrucciones, memInstrucciones.length);
     }
     
     public int[] convertirLinea(String linea)
