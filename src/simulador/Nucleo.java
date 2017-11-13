@@ -226,11 +226,49 @@ public class Nucleo extends Thread
     }
 
     //Metodo encargado de ejecutar la operacion descrita en una instruccion
-    public void ejecutarOperacion(int[] instruccion)
+    public void ejecutarOperacion(int[] ins)
     {
     	//TODO: switch the operaciones y metodos para cada una
     	System.out.println("Instruccion ejecutada: ");
-    	imprimirArreglo(instruccion, instruccion.length);
+    	imprimirArreglo(ins, ins.length);
+    	switch (ins[0]) {
+    	case 8: // daddi
+    		this.registro[ins[1]] = this.registro[ins[2]] + ins[3];
+    		break;
+    	case 32: // dadd
+    		this.registro[ins[1]] = this.registro[ins[2]] + this.registro[ins[3]];
+    		break;
+    	case 34: // dsub
+    		this.registro[ins[1]] = this.registro[ins[2]] - this.registro[ins[3]];
+    		break;
+    	case 12: // dmul
+    		this.registro[ins[1]] = this.registro[ins[2]] * this.registro[ins[3]];
+    		break;
+    	case 14: // ddiv
+    		this.registro[ins[1]] = this.registro[ins[2]] / this.registro[ins[3]];
+    		break;
+    	case 4: // beqz
+    		if(this.registro[ins[1]] == 0)
+    			this.pc += ins[3] * 4;
+    		break;
+    	case 5: // bnez
+    		if(this.registro[ins[1]] != 0)
+    			this.pc += ins[3] * 4;
+    		break;
+    	case 3: // jal
+    		this.registro[31]= this.pc;
+    		this.pc += ins[3];
+    		break;
+    	case 2: // jr
+    		this.pc = this.registro[ins[1]];
+    		break;
+    	case 35: // lw
+    		break;
+    	case 43: // sw
+    		break;
+    	case 63: // fin
+    		break;
+    	}
     	quantum--;
     	esperarAvanceTic();
     }
@@ -316,47 +354,5 @@ public class Nucleo extends Thread
     		System.out.print(arreglo[i] + ", ");
         }
     	System.out.println();
-    }
-    
-    public void ejecutar(int[] ins) {    	
-    	switch (ins[0]) {
-    	case 8: // daddi
-    		this.registro[ins[1]] = this.registro[ins[2]] + ins[3];
-    		break;
-    	case 32: // dadd
-    		this.registro[ins[1]] = this.registro[ins[2]] + this.registro[ins[3]];
-    		break;
-    	case 34: // dsub
-    		this.registro[ins[1]] = this.registro[ins[2]] - this.registro[ins[3]];
-    		break;
-    	case 12: // dmul
-    		this.registro[ins[1]] = this.registro[ins[2]] * this.registro[ins[3]];
-    		break;
-    	case 14: // ddiv
-    		this.registro[ins[1]] = this.registro[ins[2]] / this.registro[ins[3]];
-    		break;
-    	case 4: // beqz
-    		if(this.registro[ins[1]] == 0)
-    			this.pc += ins[3] * 4;
-    		break;
-    	case 5: // bnez
-    		if(this.registro[ins[1]] != 0)
-    			this.pc += ins[3] * 4;
-    		break;
-    	case 3: // jal
-    		this.registro[31]= this.pc;
-    		this.pc += ins[3];
-    		break;
-    	case 2: // jr
-    		this.pc = this.registro[ins[1]];
-    		break;
-    	case 35: // lw
-    		break;
-    	case 43: // sw
-    		break;
-    	case 63: // fin
-    		break;
-    	}
-    	Controlador.hilosListosParaTic++;
     }
 }
