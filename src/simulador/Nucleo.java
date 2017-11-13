@@ -93,7 +93,7 @@ public class Nucleo extends Thread
     		
     		while(instruccion[0] != 63 && quantum > 0) //Se leen y ejecutan las instrucciones de un hilillo hasta que este se acabe o se termine el quantum
     		{
-    			//imprimirArreglo(instruccion, instruccion.length);
+    			imprimirArreglo(instruccion, instruccion.length);
     			ejecutarOperacion(instruccion); //Al ser ejecutada, tanto el quantum como el PC son actualizados
     			instruccion = getInstruccion(); //Se agarra la siguiente instruccion del hilillo
     		}
@@ -325,17 +325,21 @@ public class Nucleo extends Thread
     //Metodo que copia una instruccion de la memoria de instrucciones a la cache de instrucciones
     private void copiarAcacheInstrucciones()
     {
+    	int[] tempArray;
     	//System.out.println("Pc de nucleo " + nombre + " de Procesador " + procesador.nombre + ": " + convertirPC());
     	synchronized(procesador.memInstrucciones)
     	{
-    		synchronized(procesador.cacheInstrucciones)
-        	{
-    			System.arraycopy(procesador.memInstrucciones, convertirPC(), procesador.cacheInstrucciones[posicionCacheX], 0, procesador.cacheInstrucciones[posicionCacheX].length / 4);
-    	    	imprimirArreglo(procesador.cacheInstrucciones[posicionCacheX], procesador.cacheInstrucciones[posicionCacheX].length);
-    	    	procesador.cacheInstrucciones[4][convertirDireccionAPosicionCache(pc) * 4] = etiquetaContexto; //Se actualiza la etiqueta del bloque
-        	}
+    		tempArray = new int[4];
+    		System.arraycopy(procesador.memInstrucciones, convertirPC(), tempArray, 0, tempArray.length);
+    		//imprimirArreglo(tempArray, tempArray.length);
     	}
     	
+    	synchronized(procesador.cacheInstrucciones)
+    	{
+			System.arraycopy(tempArray, 0, procesador.cacheInstrucciones[posicionCacheX], 0, procesador.cacheInstrucciones[posicionCacheX].length / 4);
+	    	//imprimirArreglo(procesador.cacheInstrucciones[posicionCacheX], procesador.cacheInstrucciones[posicionCacheX].length);
+	    	procesador.cacheInstrucciones[4][convertirDireccionAPosicionCache(pc) * 4] = etiquetaContexto; //Se actualiza la etiqueta del bloque
+    	}
     }
     
     //Metodo que copia los registros del primer contexto de la cola de contextos al registro del nucleo
@@ -381,6 +385,7 @@ public class Nucleo extends Thread
 
     public void imprimirArreglo(int[] arreglo, int tamano)
     {
+    	System.out.print("Arreglo: ");
     	for(int i = 0; i < tamano; i++)
         {
     		System.out.print(arreglo[i] + ", ");
