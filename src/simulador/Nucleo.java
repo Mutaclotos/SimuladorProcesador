@@ -2,6 +2,8 @@ package simulador;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 //import sun.applet.Main;
 
@@ -330,6 +332,7 @@ public class Nucleo extends Thread
     	synchronized(procesador.memInstrucciones)
     	{
     		tempArray = new int[4];
+    		System.out.println(procesador.memInstrucciones.length + " " +convertirPC());
     		System.arraycopy(procesador.memInstrucciones, convertirPC(), tempArray, 0, tempArray.length);
     		//imprimirArreglo(tempArray, tempArray.length);
     	}

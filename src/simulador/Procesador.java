@@ -91,7 +91,9 @@ public class Procesador
     	try
     	{
     		leerArchivo(archivo); //Se lee el archivo indicado para cargar las instrucciones a la cola de hilillos
-    	}catch(IOException e){}
+    	}catch(IOException e){
+    		e.printStackTrace();
+    	}
        
     }
     
@@ -168,7 +170,7 @@ public class Procesador
         llenarcolaContextos(contexto); //Se inserta el ultimo contexto en la cola de contexto
         
         int size = colaContextos.size();
-        //System.out.println("Tamaño cola de hilillos: " + size);
+        //System.out.println("Tamaï¿½o cola de hilillos: " + size);
         //imprimirArreglo(colaContextos.get(0).getInstruccion(0), 4);
         br.close();
         
