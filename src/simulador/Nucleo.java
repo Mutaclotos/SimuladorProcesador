@@ -392,4 +392,39 @@ public class Nucleo extends Thread
         }
     	System.out.println();
     }
+    
+    private void loadWord(int dir, int reg) {
+		int palabra = convertirDireccionANumPalabra(dir);
+		int bloque = convertirDireccionANumBloque(dir);
+		int bCache = convertirDireccionAPosicionCache(dir);
+		Lock cache = new ReentrantLock();
+		boolean flagCache = cache.tryLock();
+		if (flagCache) {
+			try {
+				int bloqueVict = this.cacheDatos[bCache][5];
+				int estado = this.cacheDatos[bCache][4];
+				if(bloqueVict == bloque) {
+					this.registro[reg] = this.cacheDatos[bCache][palabra];
+				}else {
+					if(estado == 2) {
+						int dirVictima = bloqueVict * 4;
+						if (bloqueVict < 16) {
+							Lock direcP0 = new ReentrantLock();
+							boolean flagDir =  direcP0.tryLock();
+							if(flagDir) {
+								try {
+									
+								}finally {
+									
+								}
+							}							
+						}
+					}
+				}
+				
+			} finally {
+				cache.unlock();
+			}
+		}
+	}
 }

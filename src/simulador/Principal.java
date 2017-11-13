@@ -34,7 +34,8 @@ public class Principal /*extends threads*/ {
         
         System.out.println("Inicializando procesador 1:"); 
         Procesador P1 = new Procesador(1, 16, 256, 32, "p1.txt");
-        
+        P0.p = P1;
+        P1.p = P0;        
         Nucleo nucleo0 = new Nucleo(0, P0)
     	{
     	    public void run()

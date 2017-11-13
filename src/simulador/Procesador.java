@@ -22,7 +22,7 @@ public class Procesador
     public List<Contexto> matrizContextos = new ArrayList<Contexto>(); //Matriz que guarda los contextos finales de cada hilillo para ser desplegados al final de la simulacion
     
     public int nombre;
-    
+    public Procesador p;
     //Variables de informacion de cache de instrucciones
     public int posicionCacheX;
     public int posicionCacheY;
