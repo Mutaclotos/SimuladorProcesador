@@ -217,7 +217,7 @@ public class Nucleo extends Thread
     	return (numBloqueMem * 4 - 32 + palabra) * 4; //Si la memoria de instrucciones es de P1, hay que restar 8 * 4 palabras
     }
     
-  //Metodo que retorna los indices y etiqueta de una instruccion de la cache de instrucciones
+  //Metodo que retorna los indices y etiqueta de una instruccion de la cache de instrucciones ff
     public void getInformacionCacheI(int numBloqueCache, int palabra)
     {
     	posicionCacheX = numBloqueCache * 4;
