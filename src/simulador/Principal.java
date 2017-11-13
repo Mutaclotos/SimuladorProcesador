@@ -74,22 +74,26 @@ public class Principal /*extends threads*/ {
     	  t = Thread.currentThread();
     	  //System.out.println("Status1: "+t.getState());
     	  //System.out.println("Current thread = "+t.getName());
-    	 synchronized(lock){
+    	 synchronized(lock)
+    	 {
     		 //System.out.println("hilosListosParaTic = "+hilosListosParaTic);
-  	   while(hilosTerminados < 3)
+         while(hilosTerminados < 3)
   	      {
-  		  /* try{
-  			   System.out.println("hilosListosParaTic = "+hilosListosParaTic);
-  			   list.wait();
-  		   }
-  		   catch(InterruptedException e) 
-           {
-  			   e.printStackTrace();
-           }*/if(hilosListosParaTic==3){
-        	   reloj++;
-    			 hilosListosParaTic = 0;
-    			 System.out.println("Hacer tic");  
-           }
+	  		  try
+	  		  {
+	  			   System.out.println("hilosListosParaTic = "+hilosListosParaTic);
+	  			   this.wait();
+	  		  }
+	  		  catch(InterruptedException e) 
+	          {
+	  			   e.printStackTrace();
+	          }
+	           if(hilosListosParaTic==3)
+	           {
+	        	   reloj++;
+	    		   hilosListosParaTic = 0;
+	    		   System.out.println("Tick de reloj: " + reloj);  
+	           }
   			 
   	    	  
   	      } 

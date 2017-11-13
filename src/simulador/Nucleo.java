@@ -36,7 +36,7 @@ public class Nucleo extends Thread
     public Nucleo(int nombre, Procesador procesador) 
     {
         pc = 0;
-        quantum = 0;
+        quantum = Principal.quantum;
         etiquetaContexto = -1;
         this.nombre = nombre;
         registro = new int[32];
@@ -77,11 +77,11 @@ public class Nucleo extends Thread
     
     public void simularNucleo()
     {
-    	System.out.println("Comenzando simulacion de Nucleo " + nombre + " del Procesador " + nombreP);
+    	System.out.println("Comenzando simulacion de Nucleo " + nombre + " del Procesador " + procesador.nombre);
     	
     	while(!procesador.colaContextos.isEmpty())
     	{
-    		
+    		System.out.println("Quantum de nucleo " + nombre + " del Procesador " + procesador.nombre + " es " + quantum);
     		synchronized(procesador.colaContextos) //Si la cola de contextos no est� bloqueada, bloquearla
     		{
     			etiquetaContexto = procesador.colaContextos.get(0).getEtiqueta(); //Se obtiene la etiqueta de un contexto
@@ -99,7 +99,7 @@ public class Nucleo extends Thread
     			instruccion = getInstruccion(); //Se agarra la siguiente instruccion del hilillo
     		}
     		
-    		quantum = Controlador.quantum; //Se resetea el valor del quantum
+    		quantum = Principal.quantum; //Se resetea el valor del quantum
     		
     		if(instruccion[0] == 63) //Si se llego a la instruccion FIN, se saca el contexto del hilillo de la cola de contextos
 			{
@@ -110,12 +110,12 @@ public class Nucleo extends Thread
     				System.out.println("Ejecucion de hilillo " + etiquetaContexto + " finalizada.");
     			}
 			}
-    		else //Si se acab� el quantum para este hilillo, se realiza un cambio de contexto
+    		else //Si se acaba el quantum para este hilillo, se realiza un cambio de contexto
     		{
     			synchronized(procesador.colaContextos)
     			{
     				copiarAContexto(procesador.colaContextos.get(etiquetaContexto)); //Se copian los valores de registro y pc al contexto relevante
-    				System.out.println("Cambio de contexto del nucleo " + nombre + " del Procesador " + nombreP);
+    				System.out.println("Cambio de contexto del nucleo " + nombre + " del Procesador " + procesador.nombre);
     			}
     			
     		}
@@ -144,21 +144,21 @@ public class Nucleo extends Thread
             }
     	}
     	
-    	System.out.println("Hilo de nucleo " + this.nombre + " terminado.");
+    	System.out.println("Hilo de nucleo " + this.nombre + " del Procesador" + procesador.nombre + " terminado.");
     	this.notifyAll();
     	}	
     }
     
     public void esperarAvanceTic()
     {
-    	synchronized(this){
-    		System.out.println("esperarAvanceTic().");
+    	synchronized(this)
+    	{
     	Principal.hilosListosParaTic++;
     	if(Principal.hilosListosParaTic < 3)
     	{
     		try 
         	{
-    			System.out.println("Hilo esperando.");
+    			System.out.println("Nucleo " + nombre + " del Procesador" + procesador.nombre + " esperando avance del tic.");
                this.wait();
             } catch (InterruptedException e) 
         	{
@@ -167,9 +167,9 @@ public class Nucleo extends Thread
     	}
     	
     	System.out.println("Todos los hilos listos para el avance de tic.");
-    	this.notify();
-    	this.notify();
-    	this.notify();
+    	this.notifyAll();
+    	//this.notify();
+    	//this.notify();
     	//System.out.println("Se notifico");
     //	System.out.println("Status1: "+Principal.t.getState());
     	//System.out.println("Status2: "+Thread.currentThread().getState());
@@ -229,6 +229,10 @@ public class Nucleo extends Thread
     public void ejecutarOperacion(int[] instruccion)
     {
     	//TODO: switch the operaciones y metodos para cada una
+    	System.out.println("Instruccion ejecutada: ");
+    	imprimirArreglo(instruccion, instruccion.length);
+    	quantum--;
+    	esperarAvanceTic();
     }
     
     public int[] getInstruccion()
