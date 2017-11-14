@@ -116,7 +116,7 @@ public class Nucleo extends Thread
     			synchronized(procesador.colaContextos)
     			{
     				copiarAContexto(procesador.colaContextos.get(etiquetaContexto)); //Se copian los valores de registro y pc al contexto relevante
-    				//System.out.println("Cambio de contexto del nucleo " + nombre + " del Procesador " + procesador.nombre);
+    				System.out.println("Cambio de contexto del nucleo " + nombre + " del Procesador " + procesador.nombre);
     			}
     			
     		}
@@ -300,9 +300,10 @@ public class Nucleo extends Thread
     	getInformacionCacheI(convertirDireccionAPosicionCache(pc), convertirDireccionANumPalabra(pc));
     	
     	//Si el numero de bloque es distinto al numero de hilillo, entonces hay un fallo de cache
-    	if(etiquetaBloque != etiquetaContexto)
+    	if(etiquetaBloque != convertirDireccionANumBloque(pc))
     	{
-    		resolverFalloCacheI();
+    		System.out.println("Nucleo " + nombre + " de Procesador " + procesador.nombre + " obtuvo un cache FAIL.");
+    		resolverFalloCacheI(etiquetaContexto);
     	}
     	System.out.println("Pc de nucleo " + nombre + " de Procesador " + procesador.nombre + ": " + convertirPC());
     	//Se copia la instruccion de cache a la variable
@@ -315,7 +316,7 @@ public class Nucleo extends Thread
     }
     
     //Metodo que copia una instruccion de la memoria de instrucciones a la cache de instruccion cuando ocurre un fallo de cache
-    public void resolverFalloCacheI()
+    public void resolverFalloCacheI(int etiquetaContexto)
     {
     	//System.out.println("Resolviendo fallo de cache I...");
     	//Se deben bloquear tanto la cache de instrucciones como la memoria de instrucciones
@@ -327,21 +328,32 @@ public class Nucleo extends Thread
     //Metodo que copia una instruccion de la memoria de instrucciones a la cache de instrucciones
     private void copiarAcacheInstrucciones()
     {
-    	int[] tempArray;
+    	int[][] tempArray;
+    	int indice = 0;
     	//System.out.println("Pc de nucleo " + nombre + " de Procesador " + procesador.nombre + ": " + convertirPC());
     	synchronized(procesador.memInstrucciones)
     	{
-    		tempArray = new int[4];
-    		System.out.println(procesador.memInstrucciones.length + " " +convertirPC());
-    		System.arraycopy(procesador.memInstrucciones, convertirPC(), tempArray, 0, tempArray.length);
+    		tempArray = new int[4][4];
+    		//System.out.println(procesador.memInstrucciones.length + " " +convertirPC());
+    		
+    		for(int i = 0; i < 4; i++)//Se copia el bloque entero de la memoria de instrucciones a una matriz temporal
+    		{
+    			System.arraycopy(procesador.memInstrucciones, convertirPC() + indice, tempArray[i], 0, tempArray[i].length);
+    			indice += 4;
+    		}
+    		
     		//imprimirArreglo(tempArray, tempArray.length);
     	}
     	
     	synchronized(procesador.cacheInstrucciones)
     	{
-			System.arraycopy(tempArray, 0, procesador.cacheInstrucciones[posicionCacheX], 0, procesador.cacheInstrucciones[posicionCacheX].length / 4);
+    		for(int i = 0; i < 4; i++)//Se copia la matriz temporal al bloque respectivo de la cache de instrucciones
+    		{
+    			System.arraycopy(tempArray[i], 0, procesador.cacheInstrucciones[i], posicionCacheY, procesador.cacheInstrucciones[i].length / 4);
+    		}
+    		
 	    	//imprimirArreglo(procesador.cacheInstrucciones[posicionCacheX], procesador.cacheInstrucciones[posicionCacheX].length);
-	    	procesador.cacheInstrucciones[4][convertirDireccionAPosicionCache(pc) * 4] = etiquetaContexto; //Se actualiza la etiqueta del bloque
+	    	procesador.cacheInstrucciones[4][convertirDireccionAPosicionCache(pc) * 4] = convertirDireccionANumBloque(pc); //Se actualiza la etiqueta del bloque
     	}
     }
     
