@@ -177,7 +177,7 @@ public class Nucleo extends Thread
 	    	//System.out.println("Status2: "+Thread.currentThread().getState());
 	    	//Principal.list.notify();
 	    	//System.out.println("Status: "+Principal.t.getState());
-	    	//Principal.result.notify();
+	    	//Principal.result.notify();zz
     
     	}
     }
