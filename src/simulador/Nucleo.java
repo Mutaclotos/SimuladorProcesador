@@ -152,7 +152,7 @@ public class Nucleo extends Thread
     
     public void esperarAvanceTic()
     {
-    	synchronized(this)
+    	synchronized(Thread.currentThread())
     	{
 	    	Principal.hilosListosParaTic++;
 	    	if(Principal.hilosListosParaTic < 3)
@@ -160,15 +160,16 @@ public class Nucleo extends Thread
 	    		try 
 	        	{
 	    			System.out.println("Nucleo " + nombre + " del Procesador" + procesador.nombre + " esperando avance del tic.");
-	               this.wait();
+	    			Thread.currentThread().wait();
 	            } catch (InterruptedException e) 
 	        	{
 	               e.printStackTrace();
 	            }
 	    	}
 	    	
-	    	//System.out.println("Todos los hilos listos para el avance de tic.");
-	    	this.notifyAll();
+	    	System.out.println("Todos los hilos listos para el avance de tic.");
+	    	//notifyAll();
+	    	Thread.currentThread().notifyAll();
 	    	//this.notify();
 	    	//this.notify();
 	    	//System.out.println("Se notifico");

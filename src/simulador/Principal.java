@@ -4,7 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
-public class Principal /*extends threads*/ {
+public class Principal extends Thread 
+{
 
 	public static int hilosTerminados; //Determina la cantidad de nucleos listos para terminar su terminacion
 	public static int hilosListosParaTic;
@@ -67,10 +68,10 @@ public class Principal /*extends threads*/ {
     	nucleo1.start();
     	nucleo2.start();
 
-        avanzarReloj();
+        //avanzarReloj();
       }
 
-     private  void avanzarReloj()
+     protected void avanzarReloj()
      {
     	  t = Thread.currentThread();
     	  //System.out.println("Status1: "+t.getState());
@@ -81,10 +82,11 @@ public class Principal /*extends threads*/ {
   	      {
 	  		  try
 	  		  {
-	  			  synchronized(this)
+	  			  synchronized(Thread.currentThread())
 	  			  {
 	  				//System.out.println("hilosListosParaTic = "+hilosListosParaTic);
-		  			   this.wait();
+	  				Thread.currentThread().wait();
+		  			   
 	  			  }
 	  			   
 	  		  }
@@ -96,7 +98,7 @@ public class Principal /*extends threads*/ {
 	           {
 	        	   reloj++;
 	    		   hilosListosParaTic = 0;
-	    		   //System.out.println("Tick de reloj: " + reloj);  
+	    		   System.out.println("Tick de reloj: " + reloj);  
 	           }
   			 
   	    	  

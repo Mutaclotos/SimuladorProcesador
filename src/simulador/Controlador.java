@@ -32,7 +32,14 @@ public class Controlador
      // reloj = 0;
       
      // interfaz();
-      Principal p=new Principal();
+    	Principal principal = new Principal()
+    	{
+    	    public void run()
+    	    {
+    	    	avanzarReloj();
+    	      //System.out.println("Nucleo de procesador");
+    	    }
+    	};
       //System.out.println("Inicializando procesador 0:");
       //Procesador P0 = new Procesador(2, 16, 384, 64, "p0.txt");
       
