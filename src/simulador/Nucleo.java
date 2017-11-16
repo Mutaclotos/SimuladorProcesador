@@ -154,7 +154,7 @@ public class Nucleo extends Thread
 	    	{
 	    		try 
 	        	{
-	    			System.out.println("Nucleo " + nombre + " del Procesador" + procesador.nombre + " esperando avance del tic.");
+	    			System.out.println("Nucleo " + nombre + " del Procesador " + procesador.nombre + " esperando avance del tic.");
 	    			syncNucleo.wait();
 	            } catch (InterruptedException e) 
 	        	{
@@ -162,21 +162,35 @@ public class Nucleo extends Thread
 	            }
 	    	}
 	    	
-	    	if(Principal.hilosListosParaTic == 3)
+	    	synchronized(Principal.syncPrincipal)
 	    	{
-	    		synchronized(Principal.syncPrincipal)
-	    		{
+				if(Principal.hilosListosParaTic == 3)
+		    	{
 	    			Principal.hilosListosParaTic = 0;
 	    			System.out.println("Todos los hilos listos para el avance de tic.");
-	    			Principal.syncPrincipal.notify();
+	    			
+	    			try 
+		        	{
+		    			System.out.println("Nucleo " + nombre + " del Procesador " + procesador.nombre + " esperando respuesta de principal.");
+		    			Principal.syncPrincipal.notify();
+		    			Principal.syncPrincipal.wait();
+		            } catch (InterruptedException e) 
+		        	{
+		               e.printStackTrace();
+		            }
 	    		}
 	    		
 	    	}
 	    	
-	    	//notifyAll();
 	    	syncNucleo.notify();
-    
     	}
+    	
+    	
+    	
+    	/*synchronized(syncNucleo)
+    	{
+    		syncNucleo.notify();
+    	}*/
     }
 
     //Metodo que obtiene los indices y valores de un dato en la cache de datos

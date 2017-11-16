@@ -40,6 +40,7 @@ public class Controlador
     	      //System.out.println("Nucleo de procesador");
     	    }
     	};
+    	principal.start();
       //System.out.println("Inicializando procesador 0:");
       //Procesador P0 = new Procesador(2, 16, 384, 64, "p0.txt");
       

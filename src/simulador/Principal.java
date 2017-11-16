@@ -66,42 +66,45 @@ public class Principal extends Thread
     	nucleo0.start();
     	nucleo1.start();
     	nucleo2.start();
-
-        //avanzarReloj();
       }
 
      protected void avanzarReloj()
      {
-    	  t = Thread.currentThread();
-    	  //System.out.println("Status1: "+t.getState());
-    	  //System.out.println("Current thread = "+t.getName());
 
     		 //System.out.println("hilosListosParaTic = "+hilosListosParaTic);
          while(hilosTerminados < 3)
   	      {
-	  		  try
-	  		  {
-	  			synchronized(syncPrincipal)
-	  			  {
-		  			  if(hilosListosParaTic < 3)
-			          {
-		  				  
-			  				//System.out.println("hilosListosParaTic = "+hilosListosParaTic);
+	  		  
+  			synchronized(syncPrincipal)
+  			  {
+	  			  if(hilosListosParaTic < 3)
+		          {
+		  		      try
+		  	  		  {
+			  				System.out.println("Hilo principal esperando nucleos...");
 			  				syncPrincipal.wait();
-				  			   
-			  		  }
-			      }
-	  			  
-	  			  reloj++;
-	    		  System.out.println("Tick de reloj: " + reloj);  
-	  		  }
-	  		  catch(InterruptedException e) 
-	          {
-	  			   e.printStackTrace();
-	          }
+		  	  		  }
+		  	  		  catch(InterruptedException e) 
+		  	          {
+		  	  			   e.printStackTrace();
+		  	          }   
+		  		  }
+		      }
+  			  
+  			   
+    		  synchronized(syncPrincipal)
+  			  {
+    			  reloj++;
+        		  System.out.println("Tick de reloj: " + reloj); 
+	  			  if(hilosListosParaTic == 0)
+		          {
+	  				  syncPrincipal.notify();
+		  		  }
+		      }
   	      } 
      }
-     public void imprimirResultador()
+     
+     public void imprimirResultados()
      {
   	   
      }
