@@ -300,6 +300,7 @@ public class Nucleo extends Thread
     //Metodo encargado de ejecutar la operacion descrita en una instruccion
     public void ejecutarOperacion(int[] ins)
     {
+    	//System.out.println("soy el nucleo:" + this.nombre + " y acceso al nucelo:" + this.procesador.p.nucleos[0].nombre);
     	switch (ins[0]) 
     	{
 	    	case 8: // daddi
@@ -348,9 +349,11 @@ public class Nucleo extends Thread
 	    		break;
 	    	case 35: // lw
 	    		System.out.println("Ejecutando LW " + ins[2] + ", " + ins[3] + "(" + ins[1] + ") :");
+	    		loadWord(ins[3] + this.registro[ins[1]], ins[2]);
 	    		break;
 	    	case 43: // sw
 	    		System.out.println("Ejecutando SW " + ins[2] + ", " + ins[3] + "(" + ins[1] + ") :");
+	    		storeWord(ins[3] + this.registro[ins[1]], ins[2]);
 	    		break;
 	    	case 63: // fin
 	    		System.out.println("Instruccion FIN ejecutada.");
@@ -484,10 +487,22 @@ public class Nucleo extends Thread
 		int palabraMem = convertirDireccionANumPalabra(dir);    //numero de palabra que se desea poner en registro 
 		int bloqueMem = convertirDireccionANumBloque(dir);      //numero de bloque que se desea poner en cache
 		int bloqueCach = convertirDireccionAPosicionCache(dir);      //numero de bloque en cache donde se va a subir
-		Lock cache = new ReentrantLock();
+		Lock cache ;
 		Lock direcP0 = new ReentrantLock();
 		Lock direcP1 = new ReentrantLock();
 		Lock busDatos = new ReentrantLock();
+		Lock cacheRemota1 = new ReentrantLock();
+		Lock cacheRemota2 = new ReentrantLock();
+		Lock cacheRemota3 = new ReentrantLock();
+		Procesador pro;
+		if(this.nombreP==0)
+		{
+			if(this.nombre==0)
+				cache=cacheRemota1;
+			else
+				cache=cacheRemota2;
+		}else
+			cache=cacheRemota3;
 		boolean flagCache = cache.tryLock();
 		boolean cargo = false;
 		while (!cargo)
@@ -575,124 +590,86 @@ public class Nucleo extends Thread
 						//a cual pertecese este nucleo
 						if ((bloqueMem < 16 && this.nombreP == 0) || (bloqueMem > 16 && this.nombreP == 1))
 						{
-							if (this.nombreP == 1)
-							{
-								bloqueMem = bloqueMem - 16;
-							}
-							boolean flagDir = direcP0.tryLock();
-							if (flagDir)
-							{
-								try
-								{
-									int estadoBloque = this.procesador.directorio[bloqueMem][3];
-									switch (estadoBloque)
-									{
-									case 0: //bloque no esta en ningun cache
-										System.arraycopy(this.procesador.memDatos, (bloqueMem * 4), this.cacheDatos[bloqueMem], 0, 4);
-										break;
-									case 1: //bloque esta en algun cache, pero no a sido modificado
-										System.arraycopy(this.procesador.memDatos, (bloqueMem * 4), this.cacheDatos[bloqueMem], 0, 4);
-										break;
-									case 2: //bloque esta en algun cache, pero a sido modificado
-										
-										/*for(int i=0;1<3;i++)
-										{
-											if(this.procesador.directorio[bloqueMem][i]==1)
-											{
-												if(i<2)
-												{
-													
-												}
-											}
-										}*/
-										break;
-									default:
-
-										break;
-									}
-									this.cacheDatos[bloqueMem][4] = bloqueMem; //indico bloque de memoria al que pertenece
-									this.cacheDatos[bloqueMem][5] = 1; //indico estdo del  bloque
-									if (this.nombreP == 0) //actualizo el directorio
-									{
-										int tipo=(this.nombre == 0)?1:2;
-										this.procesador.directorio[bloqueMem][tipo] = 1;
-									} else
-									{
-										this.procesador.directorio[bloqueMem][3] = 1;
-									}
-									this.procesador.directorio[bloqueMem][4] = 1;
-								} finally
-								{
-									direcP0.unlock();
-								}
-							}
-						} else
+							pro=this.procesador;
+						}else
 						{
-							if (this.nombreP == 1)
+							pro=this.procesador.p;
+						}
+						if (this.nombreP == 1)
+						{
+							bloqueMem = bloqueMem - 16;
+						}
+						boolean flagDir = direcP0.tryLock();
+						if (flagDir)
+						{
+							try
 							{
-								bloqueMem = bloqueMem - 16;
-							}
-							boolean flagDir = direcP1.tryLock();
-							if (flagDir)
-							{
-								try
+								int estadoBloque = pro.directorio[bloqueMem][3];
+								switch (estadoBloque)
 								{
-									int estadoBloque;
-									estadoBloque = this.procesador.p.directorio[bloqueMem][3];
-									for (int i = 0; i < 5; i++)
-									{
-										esperarAvanceTic();
-									}
-									switch (estadoBloque)
-									{
-									case 0: //bloque no esta en ningun cache
-										System.arraycopy(this.procesador.p.memDatos, (bloqueMem * 4), this.cacheDatos[bloqueMem], 0, 4);
-										break;
-									case 1: //bloque esta en algun cache, pero no a sido modificado
-										System.arraycopy(this.procesador.p.memDatos, (bloqueMem * 4), this.cacheDatos[bloqueMem], 0, 4);
-										break;
-									case 2: //bloque esta en algun cache, pero a sido modificado
-										/*for(int i=0;1<3;i++)
+								case 0: //bloque no esta en ningun cache
+									System.arraycopy(pro.memDatos, (bloqueMem * 4), this.cacheDatos[bloqueMem], 0, 4);
+									break;
+								case 1: //bloque esta en algun cache, pero no a sido modificado
+									System.arraycopy(pro.memDatos, (bloqueMem * 4), this.cacheDatos[bloqueMem], 0, 4);
+									break;
+								case 2: //bloque esta en algun cache, pero a sido modificado
+									boolean flagCacheRemota;
+									Nucleo n;
+									for(int i=0;i<3;i++)
 										{
-											if(this.procesador.p.directorio[bloqueMem][i]==1)
-											{
-												if(i<2)
-												{
-													
-												}
-											}
-										}*/
-										/*if (this.procesador.directorio[bloqueMem][1] == 1
-												|| this.procesador.directorio[bloqueMem][2] == 1)
+										if(pro.directorio[bloqueMem][i]==1)
 										{
-											for (int i = 0; i < 4; i++)
-											{
-												this.procesador.memDatos[(bloqueMem * 4) + i] = this.cacheDatos[bloqueMem][i]; //copio valores de memoria a cache
+											switch(i){
+											case 0:
+												 flagCacheRemota=cacheRemota1.tryLock();
+												 n=pro.nucleos[0];
+												break;
+											case 1:
+												flagCacheRemota=cacheRemota2.tryLock();
+												n=pro.nucleos[1];
+												break;
+											default:
+												flagCacheRemota=cacheRemota3.tryLock();
+												n=pro.nucleos[2];
+												break;	
+									
 											}
-											this.procesador.directorio[bloqueMem][3] = 1;
-										}*/
-										break;
-									default:
-
-										break;
+											int dirFisica=bloqueMem * 4;
+											if(this.nombreP==1){
+												dirFisica=dirFisica-256;
+											}
+											if((bloqueMem<16&&this.nombreP==0)||(bloqueMem>=16&&this.nombreP==1)){
+												System.arraycopy(n.cacheDatos[bloqueCach], 0, pro.memDatos, dirFisica , 4);
+											}
+										}
 									}
-									this.cacheDatos[bloqueMem][4] = bloqueMem; //indico bloque de memoria al que pertenece
-									this.cacheDatos[bloqueMem][5] = 1; //indico estdo del  bloque
-									if (this.nombreP == 0) //actualizo el directorio
-									{
-										int tipo=(this.nombre == 0)?1:2;
-										this.procesador.p.directorio[bloqueMem][tipo] = 1;
-									} else
-									{
-										this.procesador.p.directorio[bloqueMem][3] = 1;
-									}
-									this.procesador.p.directorio[bloqueMem][4] = 1;
-								} finally
-								{
-									direcP1.unlock();
+									break;
+								default:
+									System.out.println("Error en tipo de estado");
+									break;
 								}
+								this.cacheDatos[4][bloqueMem] = bloqueMem; //indico bloque de memoria al que pertenece
+								this.cacheDatos[5][bloqueMem] = 1; //indico estdo del  bloque
+								if (this.nombreP == 0) //actualizo el directorio
+								{
+									int tipo=(this.nombre == 0)?1:2;
+									pro.directorio[bloqueMem][tipo] = 1;
+								} else
+								{
+									pro.directorio[bloqueMem][3] = 1;
+								}
+								pro.directorio[bloqueMem][4] = 1;
+								
+								System.arraycopy(pro.memDatos, 0, this.cacheDatos[bloqueCach], bloqueMem * 4 , 4);
+								pro.directorio[4][bloqueCach] = 1;
+								pro.directorio[5][bloqueCach] = 1;
+							} finally
+							{
+								direcP0.unlock();
 							}
 						}
+				
 					}
 				} finally
 				{
@@ -702,4 +679,24 @@ public class Nucleo extends Thread
 			esperarAvanceTic();
 		}
 	}
+
+
+    private void storeWord(int dir, int reg) {
+    	int palabra = convertirDireccionANumPalabra(dir);
+		int bloque = convertirDireccionANumBloque(dir);
+		int bCache = convertirDireccionAPosicionCache(dir);
+		Lock cache = new ReentrantLock();
+		boolean flagCache = cache.tryLock();
+		if (flagCache) 
+		{
+			try
+			{
+				
+			}finally
+			{
+				cache.unlock();
+			}
+		}
+    }
+
 }
