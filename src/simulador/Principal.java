@@ -1,7 +1,5 @@
 package simulador;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Scanner;
 
 public class Principal extends Thread 
@@ -14,13 +12,11 @@ public class Principal extends Thread
 	public static int tipoModulacion; //El tipo de modo del correr dado por el usuario.	
 	static Thread t;
 	public static Object syncPrincipal = new Object();
-	//private final boolean lock = new boolean();
 	
-	static StringBuilder lock= new StringBuilder();
     Procesador procesador;
-    Controlador C;
+
     /**
-     * Constructor for objects of class main
+     * Constructor for objects of class Principal
      */
     public Principal()
     {
@@ -28,7 +24,7 @@ public class Principal extends Thread
         hilosListosParaTic = 0;
         reloj = 0;
         interfaz();
-        //Principal p=new Principal();
+        
         System.out.println("Inicializando procesador 0:");
         Procesador P0 = new Procesador(0, 16, 384, 64, "p0.txt");
         
@@ -36,6 +32,7 @@ public class Principal extends Thread
         Procesador P1 = new Procesador(1, 16, 256, 32, "p1.txt");
         P0.p = P1;
         P1.p = P0;        
+        //Se inicializan los tres hilos de nucleo, dos para P0 y uno para P1
         Nucleo nucleo0 = new Nucleo(0, P0)
     	{
     	    public void run()
@@ -68,16 +65,17 @@ public class Principal extends Thread
     	nucleo2.start();
       }
 
+    //Metodo que avanza el reloj de los procesadores. El hilo principal se mantiene en espera hasta que los tres hilos de nucleo estan listos para avanzar el tic
      protected void avanzarReloj()
      {
 
     		 //System.out.println("hilosListosParaTic = "+hilosListosParaTic);
-         while(hilosTerminados < 3)
+         while(hilosTerminados < 3) //La simulacion continua hasta que todos los hilos esten listos para ser terminados
   	      {
 	  		  
   			synchronized(syncPrincipal)
   			  {
-	  			  if(hilosListosParaTic < 3)
+	  			  if(hilosListosParaTic < 3) //Si no todos los hilos estan listos para avanzar el tic, el hilo principal espera
 		          {
 		  		      try
 		  	  		  {
@@ -94,11 +92,11 @@ public class Principal extends Thread
   			   
     		  synchronized(syncPrincipal)
   			  {
-    			  reloj++;
+    			  reloj++; //Se avanza el reloj
         		  System.out.println("Tick de reloj: " + reloj); 
 	  			  if(hilosListosParaTic == 0)
 		          {
-	  				  syncPrincipal.notify();
+	  				  syncPrincipal.notify(); //Se notifica a uno de los hilos de nucleo que el reloj fue avanzado
 		  		  }
 		      }
   	      } 
@@ -109,6 +107,7 @@ public class Principal extends Thread
   	   
      }
      
+     //Metodo que imprime la interfaz de usuario inicial para permitirle ingresar los valores de entrada
      public void interfaz()
      {
   	   String input=" ";

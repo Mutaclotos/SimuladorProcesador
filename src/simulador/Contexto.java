@@ -12,6 +12,7 @@ public class Contexto
 	public int numeroCiclos;
 	public int pc;
 	
+	//Constructor
 	public Contexto(int etiqueta)
 	{
 		this.etiqueta = etiqueta;

@@ -52,7 +52,6 @@ public class Nucleo extends Thread
     	etiquetaBloque = -1;
     	estadoBloque = 0;
     	
-    	setNombreProcesador(this.procesador.nombre);
     	
         //Se inicializa el registro en 0
         for(int i = 0;i < 32; i++)
@@ -81,7 +80,7 @@ public class Nucleo extends Thread
     {
     	System.out.println("Comenzando simulacion de Nucleo " + nombre + " del Procesador " + procesador.nombre);
     	
-    	while(!procesador.colaContextos.isEmpty())
+    	while(!verificarCola())
     	{
     		//System.out.println("Quantum de nucleo " + nombre + " del Procesador " + procesador.nombre + " es " + quantum);
     		synchronized(procesador.colaContextos) //Si la cola de contextos no est� bloqueada, bloquearla
@@ -130,13 +129,14 @@ public class Nucleo extends Thread
     	esperarTerminacion();
     }
     
+    //Metodo que prepara a un hilo para dar tics hasta que todos los hilos hayan finalizado su ejecucion
     public void esperarTerminacion()
     {
     		Principal.hilosTerminados++;
     		//System.out.println("Tamano cola: " + procesador.colaContextos.size());
-    		System.out.println();
+    		System.out.println("---------------------");
     		System.out.println("Nucleo " + nombre + " del Procesador" + procesador.nombre + " esperando terminacion.");
-    		System.out.println();
+    		System.out.println("---------------------");
 	    	while(Principal.hilosTerminados < 3)
 	    	{
 	    		esperarAvanceTic();
@@ -145,12 +145,13 @@ public class Nucleo extends Thread
 	    	System.out.println("Hilo de nucleo " + this.nombre + " del Procesador" + procesador.nombre + " terminado.");
     }
     
+    //Metodo de sincronizacion de hilos: los hilos esperan hasta estar todos listos para avanzar al siguiente tic y le comunican este hecho al hilo principal
     public void esperarAvanceTic()
     {
     	synchronized(syncNucleo)
     	{
 	    	Principal.hilosListosParaTic++;
-	    	if(Principal.hilosListosParaTic < 3)
+	    	if(Principal.hilosListosParaTic < 3) //Los primeros dos hilos en entrar a este bloque de codigo se quedan en espera
 	    	{
 	    		try 
 	        	{
@@ -166,14 +167,14 @@ public class Nucleo extends Thread
 	    	{
 				if(Principal.hilosListosParaTic == 3)
 		    	{
-	    			Principal.hilosListosParaTic = 0;
+	    			Principal.hilosListosParaTic = 0; //Se reinicializa el contador
 	    			System.out.println("Todos los hilos listos para el avance de tic.");
 	    			
 	    			try 
 		        	{
 		    			//System.out.println("Nucleo " + nombre + " del Procesador " + procesador.nombre + " esperando respuesta de principal.");
-		    			Principal.syncPrincipal.notify();
-		    			Principal.syncPrincipal.wait();
+		    			Principal.syncPrincipal.notify(); //Se notifica al hilo principal para que este avance el tic
+		    			Principal.syncPrincipal.wait(); //El nucleo espera hasta 
 		            } catch (InterruptedException e) 
 		        	{
 		               e.printStackTrace();
@@ -182,7 +183,7 @@ public class Nucleo extends Thread
 	    		
 	    	}
 	    	
-	    	syncNucleo.notify();
+	    	syncNucleo.notify(); //Cada hilo de nucleo notifica a otro para que este pare de esperar y continue con su ejecucion
     	}
     	
     }
@@ -202,7 +203,7 @@ public class Nucleo extends Thread
   //Metodo que convierte una direccion de memoria a un numero de bloque
     public int convertirDireccionANumBloque(int direccionMem)
     {
-    	return direccionMem / 16; //El tama�o de bloque de la cache de instrucciones es 16
+    	return direccionMem / 4; //El tama�o de bloque de la cache de instrucciones es 4
     }
     
   //Metodo que convierte una direccion de memoria a una posicion de cache
@@ -214,7 +215,8 @@ public class Nucleo extends Thread
   //Metodo que convierte una direccion de memoria a una palabra
     public int convertirDireccionANumPalabra(int direccionMem)
     {
-    	return (direccionMem % 4) / 4;
+    	//return (direccionMem % 4) / 4;
+    	return direccionMem % 4;
     }
     
   //Metodo que convierte un numero de bloque y palabra a una direccion en la memoria de instrucciones
@@ -241,49 +243,57 @@ public class Nucleo extends Thread
     //Metodo encargado de ejecutar la operacion descrita en una instruccion
     public void ejecutarOperacion(int[] ins)
     {
-    	
-    	//System.out.println("Instruccion ejecutada: ");
-    	//imprimirArreglo(ins, ins.length);
     	switch (ins[0]) 
     	{
 	    	case 8: // daddi
-	    		this.registro[ins[1]] = this.registro[ins[2]] + ins[3];
+	    		System.out.println("Ejecutando DADDI " + ins[1] + ", " + ins[2] + ", " + ins[3] + " :");
+	    		this.registro[ins[2]] = this.registro[ins[1]] + ins[3];
 	    		this.pc += 4;
 	    		break;
 	    	case 32: // dadd
-	    		this.registro[ins[1]] = this.registro[ins[2]] + this.registro[ins[3]];
+	    		System.out.println("Ejecutando DADD " + ins[1] + ", " + ins[2] + ", " + ins[3] + " :");
+	    		this.registro[ins[3]] = this.registro[ins[1]] + this.registro[ins[2]];
 	    		this.pc += 4;
 	    		break;
 	    	case 34: // dsub
-	    		this.registro[ins[1]] = this.registro[ins[2]] - this.registro[ins[3]];
+	    		System.out.println("Ejecutando DSUB " + ins[1] + ", " + ins[2] + ", " + ins[3] + " :");
+	    		this.registro[ins[3]] = this.registro[ins[1]] - this.registro[ins[2]];
 	    		this.pc += 4;
 	    		break;
 	    	case 12: // dmul
-	    		this.registro[ins[1]] = this.registro[ins[2]] * this.registro[ins[3]];
+	    		System.out.println("Ejecutando DMUL " + ins[1] + ", " + ins[2] + ", " + ins[3] + " :");
+	    		this.registro[ins[3]] = this.registro[ins[1]] * this.registro[ins[2]];
 	    		this.pc += 4;
 	    		break;
 	    	case 14: // ddiv
-	    		this.registro[ins[1]] = this.registro[ins[2]] / this.registro[ins[3]];
+	    		System.out.println("Ejecutando DDIV " + ins[1] + ", " + ins[2] + ", " + ins[3] + " :");
+	    		this.registro[ins[3]] = this.registro[ins[1]] / this.registro[ins[2]];
 	    		this.pc += 4;
 	    		break;
 	    	case 4: // beqz
+	    		System.out.println("Ejecutando BEQZ " + ins[1] + ", " + ins[3] + " :");
 	    		if(this.registro[ins[1]] == 0)
 	    			this.pc += ins[3] * 4;
 	    		break;
 	    	case 5: // bnez
+	    		System.out.println("Ejecutando BNEZ " + ins[1] + ", " + ins[3] + " :");
 	    		if(this.registro[ins[1]] != 0)
 	    			this.pc += ins[3] * 4;
 	    		break;
 	    	case 3: // jal
+	    		System.out.println("Ejecutando JAL "+ ins[3] + " :");
 	    		this.registro[31]= this.pc;
 	    		this.pc += ins[3];
 	    		break;
 	    	case 2: // jr
+	    		System.out.println("Ejecutando JR " + ins[1] + " :");
 	    		this.pc = this.registro[ins[1]];
 	    		break;
 	    	case 35: // lw
+	    		System.out.println("Ejecutando LW " + ins[2] + ", " + ins[3] + "(" + ins[1] + ") :");
 	    		break;
 	    	case 43: // sw
+	    		System.out.println("Ejecutando SW " + ins[2] + ", " + ins[3] + "(" + ins[1] + ") :");
 	    		break;
 	    	case 63: // fin
 	    		System.out.println("Instruccion FIN ejecutada.");
@@ -294,14 +304,16 @@ public class Nucleo extends Thread
 	    		this.pc += 4;
 	    		break;
     	}
-    	this.quantum--;
+    	this.quantum--; //Se reduce el quantum de 1 por cada instruccion ejecutar
     	esperarAvanceTic();
     }
     
+    //Metodo que retorna la instruccion a ser ejecutada dependiendo del pc. En caso de que no se encuentre el 
+    //numero de bloque apropiado, se produce un fallo de cache de instrucciones
     public int[] getInstruccion()
     {
     	int[] instruccion = new int[4];
-    	//TODO: fetch instruccion de mem y manejar fail de cache
+
     	//Se consigue la posicion de la instruccion en la cach� de instrucciones junto con su etiqueta dependiendo del pc
     	getInformacionCacheI(convertirDireccionAPosicionCache(pc), convertirDireccionANumPalabra(pc));
     	
@@ -309,13 +321,13 @@ public class Nucleo extends Thread
     	if(etiquetaBloque != convertirDireccionANumBloque(pc))
     	{
     		System.out.println("Nucleo " + nombre + " de Procesador " + procesador.nombre + " obtuvo un cache FAIL.");
-    		copiarAcacheInstrucciones();
+    		copiarAcacheInstrucciones(); //Se resuelve el fallo de cache al copiar el bloque de memoria al bloque de cache
     	}
     	System.out.println("Pc de nucleo " + nombre + " de Procesador " + procesador.nombre + ": " + convertirPC());
     	//Se copia la instruccion de cache a la variable
     	
     	synchronized(procesador.cacheInstrucciones)
-    	{
+    	{//Se copia una palabra de la cache de instrucciones a la variable a retornar
     		System.arraycopy(procesador.cacheInstrucciones[posicionCacheX], posicionCacheY, instruccion, 0, instruccion.length );
     	}
     	return instruccion;
@@ -373,6 +385,7 @@ public class Nucleo extends Thread
     	}
     }
     
+    //Metodo que convierte la direccion de memoria del pc a un indice que puede ser utilizado en los arreglos de memoria de instrucciones
     private int convertirPC()
     {
     	if(procesador.nombre == 0)
@@ -383,19 +396,24 @@ public class Nucleo extends Thread
     }
     
     //Remueve la cabeza de la cola y la a�ade al final
-    private void actualizarCola()
+    private synchronized void actualizarCola()
     {
-    	Contexto cabeza = procesador.colaContextos.remove(0);
-    	procesador.colaContextos.add(cabeza);
+    	if(!procesador.colaContextos.isEmpty() && procesador.colaContextos.size() > 1)
+    	{
+    		Contexto cabeza = procesador.colaContextos.remove(0);
+        	procesador.colaContextos.add(cabeza);
+    	}
+    	
     }
     
-    private void setNombreProcesador(int nombre)
+    private synchronized boolean verificarCola()
     {
-    	this.nombreP = nombre;
+    	return procesador.colaContextos.isEmpty();
     }
     
-
-    public void imprimirArreglo(int[] arreglo, int tamano)
+    
+    //Metodo que imprime un arreglo
+    public synchronized void imprimirArreglo(int[] arreglo, int tamano)
     {
     	System.out.print("Arreglo: ");
     	for(int i = 0; i < tamano; i++)
@@ -405,7 +423,9 @@ public class Nucleo extends Thread
     	System.out.println();
     }
     
-    private void loadWord(int dir, int reg) {
+    //Metodo que ejecuta la instruccion LW
+    private void loadWord(int dir, int reg) 
+    {
 		int palabra = convertirDireccionANumPalabra(dir);
 		int bloque = convertirDireccionANumBloque(dir);
 		int bCache = convertirDireccionAPosicionCache(dir);

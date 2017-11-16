@@ -50,7 +50,7 @@ public class Procesador
             {
         		if(i == 4)
         		{
-        			cacheInstrucciones[i][j] = -1;
+        			cacheInstrucciones[i][j] = -1; //La etiqueta de cada bloque es inicializada en -1
         		}
         		else
         		{
@@ -123,6 +123,8 @@ public class Procesador
 	    }
     }
     
+    //Metodo que lee un archivo de instrucciones y crea tantos contextos como hayan instrucciones de FIN.
+    //Cada contexto guarda el pc respectivo. Tambien se copian todas las instrucciones a la memoria de instrucciones
     public void leerArchivo(String archivo) throws IOException
     {
         BufferedReader br = new BufferedReader(new FileReader(archivo));
@@ -178,6 +180,7 @@ public class Procesador
         imprimirArreglo(memInstrucciones, memInstrucciones.length);
     }
     
+    //Metodo que convierte un String en un arreglo de ints
     public int[] convertirLinea(String linea)
     {
     	String[] instrucs = linea.split(" ");
@@ -199,11 +202,13 @@ public class Procesador
         }
     }
     
+    //Retorna la cola de contextos
     public List<Contexto> getColaContextos()
     {
     	return colaContextos;
     }
     
+    //Metodo que imprime un arreglo
     public void imprimirArreglo(int[] arreglo, int tamano)
     {
     	for(int i = 0; i < tamano; i++)
