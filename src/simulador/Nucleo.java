@@ -125,7 +125,7 @@ public class Nucleo extends Thread
         		        //System.out.println("Etiqueta de contexto a eliminar por el procesador " + procesador.nombre + ": " + this.etiquetaContexto);
         		        //System.out.println("Cabeza de la cola del procesador " + procesador.nombre + ": " + procesador.colaContextos.get(0).getEtiqueta());
 
-        		        Contexto contextoRemovido = procesador.colaContextos.remove(0); //Se elimina el contexto del hilillo de la cola de contextos
+        		        Contexto contextoRemovido = procesador.colaContextos.remove(getIndiceCola(etiquetaContexto)); //Se elimina el contexto del hilillo de la cola de contextos
             			procesador.matrizContextos.add(contextoRemovido); //El contexto eliminado es incluido en la matriz de contextos para ser desplegado al final de la simulacion
         		        
         				
@@ -137,7 +137,7 @@ public class Nucleo extends Thread
         		{
         			synchronized(procesador.colaContextos)
         			{
-        				copiarAContexto(procesador.colaContextos.get(0)); //Se copian los valores de registro y pc al contexto relevante
+        				copiarAContexto(procesador.colaContextos.get(getIndiceCola(etiquetaContexto))); //Se copian los valores de registro y pc al contexto relevante
         				System.out.println("Cambio de contexto del nucleo " + nombre + " del Procesador " + procesador.nombre);
         			}
         			
@@ -209,6 +209,21 @@ public class Nucleo extends Thread
     	}
     	
     }
+    
+    //Metodo que retorna el indice de un contexto de la cola de contextos
+    public synchronized int getIndiceCola(int etiquetaContexto)
+    {
+    	for(int i = 0; i < procesador.colaContextos.size(); i++)
+    	{
+    		if(procesador.colaContextos.get(i).getEtiqueta() == etiquetaContexto)
+    		{
+    			return i;
+    		}
+    	}
+    	return -1;
+    }
+    
+    
 
     //Metodo que obtiene los indices y valores de un dato en la cache de datos
     public void getInformacionCacheD(int numBloqueCache, int palabra)

@@ -219,4 +219,21 @@ public class Procesador
     	System.out.println();
     }
     
+    //Metodo que imprime la matriz de contextos finales de cada procesador
+    public void imprimirMatrizContextos()
+    {
+    	System.out.println("Contextos finales del procesador " + nombre + ":");
+    	System.out.println();
+    	for(Contexto c : matrizContextos)
+    	{
+    		System.out.print("Contexto " + c.getEtiqueta() + " => Tiempo ejecucion: " + c.getTiempoEjecucion() + "|  Ciclos de ejecucion: " + c.getCiclos() + "|  Registros: ");
+    		
+    		for(int i = 0; i < c.getRegistros().length; i++)
+            {
+        		System.out.print(c.getRegistros()[i] + ", ");
+            }
+    		System.out.println();
+    	}
+    }
+    
 }

@@ -12,6 +12,8 @@ public class Principal extends Thread
 	public static int tipoModulacion; //El tipo de modo del correr dado por el usuario.	
 	static Thread t;
 	public static Object syncPrincipal = new Object();
+	Procesador P0;
+	Procesador P1;
 	
     Procesador procesador;
 
@@ -26,10 +28,10 @@ public class Principal extends Thread
         interfaz();
         
         System.out.println("Inicializando procesador 0:");
-        Procesador P0 = new Procesador(0, 16, 384, 64, "p0.txt");
+        P0 = new Procesador(0, 16, 384, 64, "p0.txt");
         
         System.out.println("Inicializando procesador 1:"); 
-        Procesador P1 = new Procesador(1, 16, 256, 32, "p1.txt");
+        P1 = new Procesador(1, 16, 256, 32, "p1.txt");
         P0.p = P1;
         P1.p = P0;        
         //Se inicializan los tres hilos de nucleo, dos para P0 y uno para P1
@@ -100,11 +102,13 @@ public class Principal extends Thread
 		  		  }
 		      }
   	      } 
+         imprimirResultados();
      }
      
      public void imprimirResultados()
      {
-  	   
+  	     P0.imprimirMatrizContextos();
+  	     P1.imprimirMatrizContextos();
      }
      
      //Metodo que imprime la interfaz de usuario inicial para permitirle ingresar los valores de entrada
