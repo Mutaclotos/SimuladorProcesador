@@ -81,7 +81,7 @@ public class Principal extends Thread
 		          {
 		  		      try
 		  	  		  {
-			  				System.out.println("Hilo principal esperando nucleos...");
+			  				//System.out.println("Hilo principal esperando nucleos...");
 			  				syncPrincipal.wait();
 		  	  		  }
 		  	  		  catch(InterruptedException e) 

@@ -98,7 +98,7 @@ public class Nucleo extends Thread
     		
     		while(instruccion[0] != 63 && quantum > 0) //Se leen y ejecutan las instrucciones de un hilillo hasta que este se acabe o se termine el quantum
     		{
-    			//imprimirArreglo(instruccion, instruccion.length);
+    			imprimirArreglo(instruccion, instruccion.length);
     			ejecutarOperacion(instruccion); //Al ser ejecutada, tanto el quantum como el PC son actualizados
     			instruccion = getInstruccion(); //Se agarra la siguiente instruccion del hilillo
     		}
@@ -154,7 +154,7 @@ public class Nucleo extends Thread
 	    	{
 	    		try 
 	        	{
-	    			System.out.println("Nucleo " + nombre + " del Procesador " + procesador.nombre + " esperando avance del tic.");
+	    			//System.out.println("Nucleo " + nombre + " del Procesador " + procesador.nombre + " esperando avance del tic.");
 	    			syncNucleo.wait();
 	            } catch (InterruptedException e) 
 	        	{
@@ -171,7 +171,7 @@ public class Nucleo extends Thread
 	    			
 	    			try 
 		        	{
-		    			System.out.println("Nucleo " + nombre + " del Procesador " + procesador.nombre + " esperando respuesta de principal.");
+		    			//System.out.println("Nucleo " + nombre + " del Procesador " + procesador.nombre + " esperando respuesta de principal.");
 		    			Principal.syncPrincipal.notify();
 		    			Principal.syncPrincipal.wait();
 		            } catch (InterruptedException e) 
@@ -185,12 +185,6 @@ public class Nucleo extends Thread
 	    	syncNucleo.notify();
     	}
     	
-    	
-    	
-    	/*synchronized(syncNucleo)
-    	{
-    		syncNucleo.notify();
-    	}*/
     }
 
     //Metodo que obtiene los indices y valores de un dato en la cache de datos
@@ -292,11 +286,11 @@ public class Nucleo extends Thread
 	    	case 43: // sw
 	    		break;
 	    	case 63: // fin
-	    		//System.out.println("Instruccion FIN ejecutada.");
+	    		System.out.println("Instruccion FIN ejecutada.");
 	    		this.pc += 4;
 	    		break;
 	    	default:
-	    		//System.out.println("Instruccion no valida.");
+	    		System.out.println("Instruccion no valida.");
 	    		this.pc += 4;
 	    		break;
     	}
