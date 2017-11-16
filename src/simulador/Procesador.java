@@ -28,6 +28,7 @@ public class Procesador
     public int posicionCacheX;
     public int posicionCacheY;
     public int etiquetaBloque;
+    public Nucleo[] nucleos;
 
     /**
      * Constructor for objects of class Procesador
@@ -35,6 +36,7 @@ public class Procesador
     public Procesador(int nombre, int tamanoCache, int tamanoMemoriaI, int tamanoMemoriaD, String archivo)
     {
     	//Se inicializan estructuras de datos
+    	nucleos = new Nucleo[2];
     	cacheInstrucciones = new int [5][tamanoCache];
     	memInstrucciones = new int [tamanoMemoriaI];
     	memDatos = new int [tamanoMemoriaD];

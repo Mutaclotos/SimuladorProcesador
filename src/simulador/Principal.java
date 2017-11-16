@@ -61,6 +61,9 @@ public class Principal extends Thread
     	      //System.out.println("Nucleo de procesador");
     	    }
     	};
+    	P0.nucleos[0] = nucleo0;
+    	P0.nucleos[1] = nucleo1;
+    	P1.nucleos[0] = nucleo2;
 
     	nucleo0.start();
     	nucleo1.start();

@@ -296,6 +296,7 @@ public class Nucleo extends Thread
     //Metodo encargado de ejecutar la operacion descrita en una instruccion
     public void ejecutarOperacion(int[] ins)
     {
+    	System.out.println("soy el nucleo:" + this.nombre + " y acceso al nucelo:" + this.procesador.p.nucleos[0].nombre);
     	switch (ins[0]) 
     	{
 	    	case 8: // daddi
@@ -344,9 +345,11 @@ public class Nucleo extends Thread
 	    		break;
 	    	case 35: // lw
 	    		System.out.println("Ejecutando LW " + ins[2] + ", " + ins[3] + "(" + ins[1] + ") :");
+	    		loadWord(ins[3] + this.registro[ins[1]], ins[2]);
 	    		break;
 	    	case 43: // sw
 	    		System.out.println("Ejecutando SW " + ins[2] + ", " + ins[3] + "(" + ins[1] + ") :");
+	    		storeWord(ins[3] + this.registro[ins[1]], ins[2]);
 	    		break;
 	    	case 63: // fin
 	    		System.out.println("Instruccion FIN ejecutada.");
@@ -707,4 +710,22 @@ public class Nucleo extends Thread
 	
 	
 	}
+
+    private void storeWord(int dir, int reg) {
+    	int palabra = convertirDireccionANumPalabra(dir);
+		int bloque = convertirDireccionANumBloque(dir);
+		int bCache = convertirDireccionAPosicionCache(dir);
+		Lock cache = new ReentrantLock();
+		boolean flagCache = cache.tryLock();
+		if (flagCache) 
+		{
+			try
+			{
+				
+			}finally
+			{
+				cache.unlock();
+			}
+		}
+    }
 }
