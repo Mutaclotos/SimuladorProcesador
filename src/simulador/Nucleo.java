@@ -155,6 +155,10 @@ public class Nucleo extends Thread
         					copiarAContexto(procesador.colaContextos.get(getIndiceCola(etiquetaContexto)), fin - inicio); //Se copian los valores de registro y pc al contexto relevante
         					System.out.println("Cambio de contexto del nucleo " + nombre + " del Procesador " + procesador.nombre);
         		        }
+        				else
+        		        {
+        		        	System.out.println("----Contexto no encontrado en la cola del procesador " + procesador.nombre);
+        		        }
         			}
         			
         		}
@@ -387,7 +391,7 @@ public class Nucleo extends Thread
     }
     
     //Metodo que copia una instruccion de la memoria de instrucciones a la cache de instruccion cuando ocurre un fallo de cache    
-    private void copiarAcacheInstrucciones()
+    private synchronized void copiarAcacheInstrucciones()
     {
     	int[][] tempArray;
     	int indice = 0;

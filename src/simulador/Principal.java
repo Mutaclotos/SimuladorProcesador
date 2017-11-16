@@ -89,11 +89,11 @@ public class Principal extends Thread
 		  	  			   e.printStackTrace();
 		  	          }   
 		  		  }
-		      //}
+		      }
   			  
   			   
-    		  //synchronized(syncPrincipal)
-  			  //{
+    		  synchronized(syncPrincipal)
+  			  {
     			//Si la ejecucion de la simulacion es manual, se debe oprimir Enter para avanzar el reloj
     			  //System.out.println(tipoModulacion); 
         		  /*if(tipoModulacion == 2)
