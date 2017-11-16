@@ -411,43 +411,229 @@ public class Nucleo extends Thread
 		int bCache = convertirDireccionAPosicionCache(dir);
 		Lock cache = new ReentrantLock();
 		boolean flagCache = cache.tryLock();
-		if (flagCache) {
-			try {
-				int bloqueVict = this.cacheDatos[bCache][5];
-				int estado = this.cacheDatos[bCache][4];
-				if(bloqueVict == bloque) {
+		if (flagCache) 
+		{
+			try
+			{
+				int bloqueVict = this.cacheDatos[5][bCache];
+				int estado = this.cacheDatos[4][bCache];
+				if(bloqueVict == bloque) 
+				{
 					this.registro[reg] = this.cacheDatos[bCache][palabra];
-				}else {
-					if(estado == 2) {
+				}else
+				{
+					//EL estado del bloque victima es modificado 
+					if(estado == 2)
+					{
 						int dirVictima = bloqueVict * 4;
-						if (bloqueVict < 16) {
+						if(this.nombreP==1){
+							dirVictima=dirVictima-16;
+						}
+						//Siguiente if verifica condicion de que si el bloque victima es menor a 16 y el nucleo es del procesador 0
+						//o el bloque victima es mayor a 16 y el nucleo es del procesador 1 este use el directorio de su procesador
+						//de lo contrario use el directorio del otro procesador.
+						if ((bloqueVict < 16 && this.nombreP==0)||(bloqueVict > 16 && this.nombreP==1)) 
+						{
+							if(this.nombreP==1){
+								bloqueVict=bloqueVict-16;
+							}
 							Lock direcP0 = new ReentrantLock();
 							boolean flagDir =  direcP0.tryLock();
-							if(flagDir) {
-								try {
-									Lock bus = new ReentrantLock();
-									boolean flagBus =  bus.tryLock();
-									if(flagBus) {
-										try {
-											System.arraycopy(this.cacheDatos[bCache], 0, this.procesador.memInstrucciones, dirVictima, 4);
-											for(int i = 0; i < 16; i++)
-												esperarAvanceTic();
-											
-										}finally {
-											bus.unlock();
-										}
+							if(flagDir) 
+							{
+								try 
+								{
+									for(int i=0;i<4;i++)
+									{
+										this.procesador.memDatos[dirVictima + i] = this.cacheDatos[bCache][i];//Almacena el contenido del cache victima en la memoria compartida
 									}
-								}finally {
-									direcP0.unlock();
+									this.procesador.directorio[bloqueVict][3]=1; //Modifica en estado del bloque victima en el directorio correspondiente
+									for(int i=0;i<16;i++)
+									{    //Espera la cantidad de tic necesarios
+										esperarAvanceTic();
+									}
+								}finally 
+								{
+									direcP0.unlock();   //Libero directorio local 
 								}
-							}							
+							}	
+						}else
+						{
+							if(this.nombreP==1){
+								bloqueVict=bloqueVict-16;
+							}
+							Lock direcP1 = new ReentrantLock();
+							boolean flagDir = direcP1.tryLock();
+							if(flagDir) 
+							{
+								try 
+								{
+									for(int i=0;i<4;i++)
+									{
+										this.procesador.p.memDatos[dirVictima + i] = this.cacheDatos[bCache][i];//Almacena el contenido del cache victima en la memoria compartida 
+									}
+									this.procesador.p.directorio[bloqueVict][3]=1; //Modifica en estado del bloque victima en el directorio correspondiente
+									for(int i=0;i<40;i++)
+									{ //Espera la cantidad de tic necesarios
+										esperarAvanceTic();
+									}
+								}finally 
+								{
+									direcP1.unlock();   //Libero directorio externo
+								}					
+							}
+				
+						}
+					}
+					//Pregunta para saber si el bloque a cargar pertenece a la memoria compartida a cargo del procesador 
+					//a cual pertecese este nucleo
+					if((bloque < 16 && this.nombreP==0)||(bloque > 16 && this.nombreP==1)){
+						if(this.nombreP==1)
+						{
+							bloque=bloque-16;
+						}
+						Lock direcP0 = new ReentrantLock();
+						boolean flagDir =  direcP0.tryLock();
+						if(flagDir) 
+						{
+							try 
+							{
+								int estadoBloque;
+								estadoBloque = this.procesador.directorio[bloque][3];
+								esperarAvanceTic();
+								switch (estadoBloque) 
+								{
+								case 0:   //bloque no esta en ningun cache
+									for(int i=0;i<4;i++){
+										this.cacheDatos[bloque][i]=this.procesador.memDatos[(bloque*4)+i];  //copio valores de memoria a cache
+									}
+									this.cacheDatos[bloque][4]=bloque;  //indico bloque de memoria al que pertenece
+									this.cacheDatos[bloque][5]=1;  //indico estdo del  bloque
+									if(this.nombreP == 0)  //actualizo el directorio
+									{
+										if(this.nombre==0)
+										{
+											this.procesador.directorio[bloque][1]=1;
+										}else
+										{
+											this.procesador.directorio[bloque][2]=1;
+										}
+									}else{
+										this.procesador.directorio[bloque][3]=1;
+									}
+									this.procesador.directorio[bloque][4]=1;
+									break;
+								case 1:	//bloque esta en algun cache, pero no a sido modificado
+									for(int i=0;i<4;i++){
+										this.cacheDatos[bloque][i]=this.procesador.memDatos[(bloque*4)+i];
+									}
+									this.cacheDatos[bloque][4]=bloque;  //indico bloque de memoria al que pertenece
+									this.cacheDatos[bloque][5]=1;  //indico estdo del  bloque
+									if(this.nombreP == 0)  //actualizo el directorio
+									{
+										if(this.nombre==0)
+										{
+											this.procesador.directorio[bloque][1]=1;
+										}else
+										{
+											this.procesador.directorio[bloque][2]=1;
+										}
+									}else{
+										this.procesador.directorio[bloque][3]=1;
+									}
+									this.procesador.directorio[bloque][4]=1;
+									break;
+								case 3:   //bloque esta en algun cache, pero a sido modificado
+									
+									break;
+								 default:
+									
+									break;
+								}
+							}finally 
+							{
+								direcP0.unlock();
+							}
+						}
+					}else{
+						if(this.nombreP==1)
+						{
+							bloque=bloque-16;
+						}
+						Lock direcP1 = new ReentrantLock();
+						boolean flagDir =  direcP1.tryLock();
+						if(flagDir) 
+						{
+							try 
+							{
+								int estadoBloque;
+								estadoBloque = this.procesador.p.directorio[bloque][3];
+								for(int i=0;i<5;i++)
+								{
+									esperarAvanceTic();
+								}
+								switch (estadoBloque) 
+								{
+								case 0:   //bloque no esta en ningun cache
+									for(int i=0;i<4;i++){
+										this.cacheDatos[bloque][i]=this.procesador.p.memDatos[(bloque*4)+i];  //copio valores de memoria a cache
+									}
+									this.cacheDatos[bloque][4]=bloque;  //indico bloque de memoria al que pertenece
+									this.cacheDatos[bloque][5]=1;  //indico estdo del  bloque
+									if(this.nombreP == 0)  //actualizo el directorio
+									{
+										if(this.nombre==0)
+										{
+											this.procesador.p.directorio[bloque][1]=1;
+										}else
+										{
+											this.procesador.p.directorio[bloque][2]=1;
+										}
+									}else{
+										this.procesador.p.directorio[bloque][3]=1;
+									}
+									this.procesador.p.directorio[bloque][4]=1;
+									break;
+								case 1:	//bloque esta en algun cache, pero no a sido modificado
+									for(int i=0;i<4;i++){
+										this.cacheDatos[bloque][i]=this.procesador.p.memDatos[(bloque*4)+i];
+									}
+									this.cacheDatos[bloque][4]=bloque;  //indico bloque de memoria al que pertenece
+									this.cacheDatos[bloque][5]=1;  //indico estdo del  bloque
+									if(this.nombreP == 0)  //actualizo el directorio
+									{
+										if(this.nombre==0)
+										{
+											this.procesador.p.directorio[bloque][1]=1;
+										}else
+										{
+											this.procesador.p.directorio[bloque][2]=1;
+										}
+									}else{
+										this.procesador.p.directorio[bloque][3]=1;
+									}
+									this.procesador.p.directorio[bloque][4]=1;
+									break;
+								case 3:   //bloque esta en algun cache, pero a sido modificado
+									
+									break;
+								 default:
+									
+									break;
+								}
+							}finally 
+							{
+								direcP1.unlock();
+							}
 						}
 					}
 				}
-				
-			} finally {
+			} finally 
+			{
 				cache.unlock();
 			}
 		}
+	
+	
 	}
 }
