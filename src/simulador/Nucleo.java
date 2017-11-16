@@ -23,6 +23,7 @@ public class Nucleo extends Thread
     public int quantum;
     private int[] registro;
     public int[][] cacheDatos;
+    private static Object syncNucleo = new Object();
    
     Procesador procesador;
   //Variables de informacion de cache de datos
@@ -85,17 +86,19 @@ public class Nucleo extends Thread
     		//System.out.println("Quantum de nucleo " + nombre + " del Procesador " + procesador.nombre + " es " + quantum);
     		synchronized(procesador.colaContextos) //Si la cola de contextos no est� bloqueada, bloquearla
     		{
-    			etiquetaContexto = procesador.colaContextos.get(0).getEtiqueta(); //Se obtiene la etiqueta de un contexto
+    			this.etiquetaContexto = procesador.colaContextos.get(0).getEtiqueta(); //Se obtiene la etiqueta de un contexto
     			copiarARegistro(procesador.colaContextos.get(0)); //Se copian los valores del contexto al registro
-    			pc = procesador.colaContextos.get(0).getPc(); //Se actualiza el pc con el valor de dicho contexto
+    			this.pc = procesador.colaContextos.get(0).getPc(); //Se actualiza el pc con el valor de dicho contexto
         		actualizarCola(); //Se saca el contexto de la cabeza de la cola y se a�ade al final
+        		
+        		System.out.println("Nucleo " + nombre + " del Procesador " + procesador.nombre + " ejecutando hilillo " + etiquetaContexto);
     		}
     		
     		int[] instruccion = getInstruccion();
     		
     		while(instruccion[0] != 63 && quantum > 0) //Se leen y ejecutan las instrucciones de un hilillo hasta que este se acabe o se termine el quantum
     		{
-    			imprimirArreglo(instruccion, instruccion.length);
+    			//imprimirArreglo(instruccion, instruccion.length);
     			ejecutarOperacion(instruccion); //Al ser ejecutada, tanto el quantum como el PC son actualizados
     			instruccion = getInstruccion(); //Se agarra la siguiente instruccion del hilillo
     		}
@@ -108,7 +111,7 @@ public class Nucleo extends Thread
     			{
     				Contexto contextoRemovido = procesador.colaContextos.remove(etiquetaContexto); //Se elimina el contexto del hilillo de la cola de contextos
     				procesador.matrizContextos.add(contextoRemovido); //El contexto eliminado es incluido en la matriz de contextos para ser desplegado al final de la simulacion
-    				System.out.println("Ejecucion de hilillo " + etiquetaContexto + " finalizada.");
+    				System.out.println("Ejecucion de hilillo " + etiquetaContexto + " finalizada para el nucleo " + nombre + " del Procesador " + procesador.nombre);
     			}
 			}
     		else //Si se acaba el quantum para este hilillo, se realiza un cambio de contexto
@@ -123,36 +126,28 @@ public class Nucleo extends Thread
     	}
 
     	//Si la cola de contextos est� vacia entonces no hay mas hilillo que ejecutar. El nucleo espera su terminacion.
-    	esperarAvanceTic();
-
-    	//Si la cola de contextos est� vacia entonces no hay mas hilillo que ejecutar. El nucleo espera su terminacion.
 
     	esperarTerminacion();
     }
     
     public void esperarTerminacion()
     {
-    	synchronized(this){
     		Principal.hilosTerminados++;
-    	if(Principal.hilosTerminados < 3)
-    	{
-    		try 
-        	{
-               this.wait();
-            } catch (InterruptedException e) 
-        	{
-               e.printStackTrace();
-            }
-    	}
-    	
-    	System.out.println("Hilo de nucleo " + this.nombre + " del Procesador" + procesador.nombre + " terminado.");
-    	this.notifyAll();
-    	}	
+    		//System.out.println("Tamano cola: " + procesador.colaContextos.size());
+    		System.out.println();
+    		System.out.println("Nucleo " + nombre + " del Procesador" + procesador.nombre + " esperando terminacion.");
+    		System.out.println();
+	    	while(Principal.hilosTerminados < 3)
+	    	{
+	    		esperarAvanceTic();
+	    	}
+	    	
+	    	System.out.println("Hilo de nucleo " + this.nombre + " del Procesador" + procesador.nombre + " terminado.");
     }
     
     public void esperarAvanceTic()
     {
-    	synchronized(Thread.currentThread())
+    	synchronized(syncNucleo)
     	{
 	    	Principal.hilosListosParaTic++;
 	    	if(Principal.hilosListosParaTic < 3)
@@ -160,24 +155,26 @@ public class Nucleo extends Thread
 	    		try 
 	        	{
 	    			System.out.println("Nucleo " + nombre + " del Procesador" + procesador.nombre + " esperando avance del tic.");
-	    			Thread.currentThread().wait();
+	    			syncNucleo.wait();
 	            } catch (InterruptedException e) 
 	        	{
 	               e.printStackTrace();
 	            }
 	    	}
 	    	
-	    	System.out.println("Todos los hilos listos para el avance de tic.");
+	    	if(Principal.hilosListosParaTic == 3)
+	    	{
+	    		synchronized(Principal.syncPrincipal)
+	    		{
+	    			Principal.hilosListosParaTic = 0;
+	    			System.out.println("Todos los hilos listos para el avance de tic.");
+	    			Principal.syncPrincipal.notify();
+	    		}
+	    		
+	    	}
+	    	
 	    	//notifyAll();
-	    	Thread.currentThread().notifyAll();
-	    	//this.notify();
-	    	//this.notify();
-	    	//System.out.println("Se notifico");
-	    //	System.out.println("Status1: "+Principal.t.getState());
-	    	//System.out.println("Status2: "+Thread.currentThread().getState());
-	    	//Principal.list.notify();
-	    	//System.out.println("Status: "+Principal.t.getState());
-	    	//Principal.result.notify();zz
+	    	syncNucleo.notify();
     
     	}
     }
@@ -289,7 +286,7 @@ public class Nucleo extends Thread
 	    		this.pc += 4;
 	    		break;
     	}
-    	quantum--;
+    	this.quantum--;
     	esperarAvanceTic();
     }
     
@@ -304,7 +301,7 @@ public class Nucleo extends Thread
     	if(etiquetaBloque != convertirDireccionANumBloque(pc))
     	{
     		System.out.println("Nucleo " + nombre + " de Procesador " + procesador.nombre + " obtuvo un cache FAIL.");
-    		resolverFalloCacheI(etiquetaContexto);
+    		copiarAcacheInstrucciones();
     	}
     	System.out.println("Pc de nucleo " + nombre + " de Procesador " + procesador.nombre + ": " + convertirPC());
     	//Se copia la instruccion de cache a la variable
@@ -316,17 +313,7 @@ public class Nucleo extends Thread
     	return instruccion;
     }
     
-    //Metodo que copia una instruccion de la memoria de instrucciones a la cache de instruccion cuando ocurre un fallo de cache
-    public void resolverFalloCacheI(int etiquetaContexto)
-    {
-    	//System.out.println("Resolviendo fallo de cache I...");
-    	//Se deben bloquear tanto la cache de instrucciones como la memoria de instrucciones
-    	//TODO: Revisar esto
-    	copiarAcacheInstrucciones();
-    	
-    }
-    
-    //Metodo que copia una instruccion de la memoria de instrucciones a la cache de instrucciones
+    //Metodo que copia una instruccion de la memoria de instrucciones a la cache de instruccion cuando ocurre un fallo de cache    
     private void copiarAcacheInstrucciones()
     {
     	int[][] tempArray;
@@ -343,7 +330,7 @@ public class Nucleo extends Thread
     			indice += 4;
     		}
     		
-    		//imprimirArreglo(tempArray, tempArray.length);
+    		
     	}
     	
     	synchronized(procesador.cacheInstrucciones)
@@ -355,6 +342,7 @@ public class Nucleo extends Thread
     		
 	    	//imprimirArreglo(procesador.cacheInstrucciones[posicionCacheX], procesador.cacheInstrucciones[posicionCacheX].length);
 	    	procesador.cacheInstrucciones[4][convertirDireccionAPosicionCache(pc) * 4] = convertirDireccionANumBloque(pc); //Se actualiza la etiqueta del bloque
+	    	//Procesador.imprimirMatriz(procesador.cacheInstrucciones);
     	}
     }
     

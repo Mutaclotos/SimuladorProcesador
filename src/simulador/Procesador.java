@@ -109,7 +109,7 @@ public class Procesador
     }
     
     //Metodo que imprime una matriz
-    public void imprimirMatriz(int matriz[][])
+    public static void imprimirMatriz(int matriz[][])
     {
     	for(int i = 0; i < matriz.length; i++)
 	    {
@@ -147,7 +147,7 @@ public class Procesador
             //System.out.println(line);
             int[] instruccion = convertirLinea(line);
             guardarInstrucciones(instruccion, indice);
-            
+            //imprimirArreglo(instruccion, 4);
             indice = indice + 4; //Se avanza el indice de la memoria de instrucciones para guardar la siguiente instruccion
             if(instruccion[0] == 63) //Si un hilillo se termina, se crea un nuevo contexto
             {
@@ -167,10 +167,10 @@ public class Procesador
 
             line = br.readLine(); 
          }
-        llenarcolaContextos(contexto); //Se inserta el ultimo contexto en la cola de contexto
+        
         
         int size = colaContextos.size();
-        //System.out.println("Tama�o cola de hilillos: " + size);
+        System.out.println("Tamano cola de hilillos: " + size);
         //imprimirArreglo(colaContextos.get(0).getInstruccion(0), 4);
         br.close();
         

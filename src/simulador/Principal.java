@@ -13,7 +13,7 @@ public class Principal extends Thread
 	public static int quantum; //El valor del quantum ingresado por el usuario
 	public static int tipoModulacion; //El tipo de modo del correr dado por el usuario.	
 	static Thread t;
-	public static List<Integer> list;
+	public static Object syncPrincipal = new Object();
 	//private final boolean lock = new boolean();
 	
 	static StringBuilder lock= new StringBuilder();
@@ -27,7 +27,6 @@ public class Principal extends Thread
     	hilosTerminados = 0;
         hilosListosParaTic = 0;
         reloj = 0;
-        list = new ArrayList<>();
         interfaz();
         //Principal p=new Principal();
         System.out.println("Inicializando procesador 0:");
@@ -82,26 +81,24 @@ public class Principal extends Thread
   	      {
 	  		  try
 	  		  {
-	  			  synchronized(Thread.currentThread())
+	  			synchronized(syncPrincipal)
 	  			  {
-	  				//System.out.println("hilosListosParaTic = "+hilosListosParaTic);
-	  				Thread.currentThread().wait();
-		  			   
-	  			  }
-	  			   
+		  			  if(hilosListosParaTic < 3)
+			          {
+		  				  
+			  				//System.out.println("hilosListosParaTic = "+hilosListosParaTic);
+			  				syncPrincipal.wait();
+				  			   
+			  		  }
+			      }
+	  			  
+	  			  reloj++;
+	    		  System.out.println("Tick de reloj: " + reloj);  
 	  		  }
 	  		  catch(InterruptedException e) 
 	          {
 	  			   e.printStackTrace();
 	          }
-	           if(hilosListosParaTic==3)
-	           {
-	        	   reloj++;
-	    		   hilosListosParaTic = 0;
-	    		   System.out.println("Tick de reloj: " + reloj);  
-	           }
-  			 
-  	    	  
   	      } 
      }
      public void imprimirResultador()
