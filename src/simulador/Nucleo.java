@@ -1,5 +1,6 @@
 package simulador;
 
+import java.sql.Timestamp;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -23,6 +24,7 @@ public class Nucleo extends Thread
     private boolean bandera;
     public int[][] cacheDatos;
     private static Object syncNucleo = new Object();
+    private Timestamp timestamp;
    
     Procesador procesador;
   //Variables de informacion de cache de datos
@@ -50,7 +52,7 @@ public class Nucleo extends Thread
     	posicionCacheY = 0;
     	etiquetaBloque = -1;
     	estadoBloque = 0;
-    	
+    	timestamp = new Timestamp(System.currentTimeMillis());
     	
         //Se inicializa el registro en 0
         for(int i = 0;i < 32; i++)
@@ -97,6 +99,7 @@ public class Nucleo extends Thread
     			//System.out.println("Quantum de nucleo " + nombre + " del Procesador " + procesador.nombre + " es " + quantum);
         		synchronized(procesador.colaContextos) //Si la cola de contextos no est� bloqueada, bloquearla
         		{
+        			
         			this.etiquetaContexto = procesador.colaContextos.get(0).getEtiqueta(); //Se obtiene la etiqueta de un contexto
         			copiarARegistro(procesador.colaContextos.get(0)); //Se copian los valores del contexto al registro
         			this.pc = procesador.colaContextos.get(0).getPc(); //Se actualiza el pc con el valor de dicho contexto
@@ -107,12 +110,16 @@ public class Nucleo extends Thread
         		
         		int[] instruccion = getInstruccion();
         		
+        		float inicio = timestamp.getTime(); //Inicio de la ejecucion del hilillo
+        		
         		while(instruccion[0] != 63 && quantum > 0) //Se leen y ejecutan las instrucciones de un hilillo hasta que este se acabe o se termine el quantum
         		{
         			imprimirArreglo(instruccion, instruccion.length);
         			ejecutarOperacion(instruccion); //Al ser ejecutada, tanto el quantum como el PC son actualizados
         			instruccion = getInstruccion(); //Se agarra la siguiente instruccion del hilillo
         		}
+        		
+        		float fin = timestamp.getTime(); //Fin de la ejecucion del hilillo
         		
         		quantum = Principal.quantum; //Se resetea el valor del quantum
         		
@@ -124,12 +131,18 @@ public class Nucleo extends Thread
         		        System.out.println("Tamano cola de contextos de procesador " + procesador.nombre + ": " + size);
         		        //System.out.println("Etiqueta de contexto a eliminar por el procesador " + procesador.nombre + ": " + this.etiquetaContexto);
         		        //System.out.println("Cabeza de la cola del procesador " + procesador.nombre + ": " + procesador.colaContextos.get(0).getEtiqueta());
-
-        		        Contexto contextoRemovido = procesador.colaContextos.remove(getIndiceCola(etiquetaContexto)); //Se elimina el contexto del hilillo de la cola de contextos
-            			procesador.matrizContextos.add(contextoRemovido); //El contexto eliminado es incluido en la matriz de contextos para ser desplegado al final de la simulacion
         		        
-        				
-        				
+        		        if(getIndiceCola(etiquetaContexto) != -1)
+        		        {
+        		        	procesador.colaContextos.get(getIndiceCola(etiquetaContexto)).setTiempoEjecucion(fin - inicio);
+        		        	Contexto contextoRemovido = procesador.colaContextos.remove(getIndiceCola(etiquetaContexto)); //Se elimina el contexto del hilillo de la cola de contextos
+                			procesador.matrizContextos.add(contextoRemovido); //El contexto eliminado es incluido en la matriz de contextos para ser desplegado al final de la simulacion
+        		        }
+        		        else
+        		        {
+        		        	System.out.println("----Contexto no encontrado en la cola del procesador " + procesador.nombre);
+        		        }
+        		        
         				System.out.println("Ejecucion de hilillo " + etiquetaContexto + " finalizada por el nucleo " + nombre + " del Procesador " + procesador.nombre);
         			}
     			}
@@ -137,8 +150,11 @@ public class Nucleo extends Thread
         		{
         			synchronized(procesador.colaContextos)
         			{
-        				copiarAContexto(procesador.colaContextos.get(getIndiceCola(etiquetaContexto))); //Se copian los valores de registro y pc al contexto relevante
-        				System.out.println("Cambio de contexto del nucleo " + nombre + " del Procesador " + procesador.nombre);
+        				if(getIndiceCola(etiquetaContexto) != -1)
+        		        {
+        					copiarAContexto(procesador.colaContextos.get(getIndiceCola(etiquetaContexto)), fin - inicio); //Se copian los valores de registro y pc al contexto relevante
+        					System.out.println("Cambio de contexto del nucleo " + nombre + " del Procesador " + procesador.nombre);
+        		        }
         			}
         			
         		}
@@ -168,7 +184,7 @@ public class Nucleo extends Thread
     }
     
     //Metodo de sincronizacion de hilos: los hilos esperan hasta estar todos listos para avanzar al siguiente tic y le comunican este hecho al hilo principal
-    public void esperarAvanceTic()
+    public synchronized void esperarAvanceTic()
     {
     	synchronized(syncNucleo)
     	{
@@ -191,11 +207,11 @@ public class Nucleo extends Thread
 		    	{
 	    			Principal.hilosListosParaTic = 0; //Se reinicializa el contador
 	    			System.out.println("Todos los hilos listos para el avance de tic.");
-	    			
+	    			Principal.syncPrincipal.notify(); //Se notifica al hilo principal para que este avance el tic
 	    			try 
 		        	{
 		    			//System.out.println("Nucleo " + nombre + " del Procesador " + procesador.nombre + " esperando respuesta de principal.");
-		    			Principal.syncPrincipal.notify(); //Se notifica al hilo principal para que este avance el tic
+		    			
 		    			Principal.syncPrincipal.wait(); //El nucleo espera hasta 
 		            } catch (InterruptedException e) 
 		        	{
@@ -413,13 +429,11 @@ public class Nucleo extends Thread
     }
     
     //Metodo que actualiza el contexto dentro de la cola de contextos cuando se realiza un cambio de contexto
-    private void copiarAContexto(Contexto contexto)
+    private synchronized void copiarAContexto(Contexto contexto, float tiempo)
     {
-    	synchronized(contexto)
-    	{
-	    	contexto.setPc(pc); //Se actualiza el pc del contexto
-	    	contexto.setRegistros(registro); //Se actualizan los registros del contexto
-    	}
+	    contexto.setPc(pc); //Se actualiza el pc del contexto
+	    contexto.setRegistros(registro); //Se actualizan los registros del contexto
+    	contexto.setTiempoEjecucion(tiempo);
     }
     
     //Metodo que convierte la direccion de memoria del pc a un indice que puede ser utilizado en los arreglos de memoria de instrucciones
