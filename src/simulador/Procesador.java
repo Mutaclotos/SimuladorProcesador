@@ -22,6 +22,7 @@ public class Procesador
     public List<Contexto> matrizContextos = new ArrayList<Contexto>(); //Matriz que guarda los contextos finales de cada hilillo para ser desplegados al final de la simulacion
     
     public int nombre;
+    public boolean ultimoHilillo;
     public Procesador p;
     //Variables de informacion de cache de instrucciones
     public int posicionCacheX;
@@ -39,7 +40,7 @@ public class Procesador
     	memDatos = new int [tamanoMemoriaD];
     	directorio = new int [tamanoMemoriaD / 4][5];
     	this.nombre = nombre;
-    	
+    	ultimoHilillo = false;
     	posicionCacheX = 0;
     	posicionCacheY = 0;
     	etiquetaBloque = -1;
@@ -172,7 +173,7 @@ public class Procesador
         
         
         int size = colaContextos.size();
-        System.out.println("Tamano cola de hilillos: " + size);
+        System.out.println("Tamano cola de contextos: " + size);
         //imprimirArreglo(colaContextos.get(0).getInstruccion(0), 4);
         br.close();
         

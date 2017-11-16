@@ -1,7 +1,5 @@
 package simulador;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -22,6 +20,7 @@ public class Nucleo extends Thread
     private int nombreP; //Nombre del procesador al que pertenece este nucleo
     public int quantum;
     private int[] registro;
+    private boolean bandera;
     public int[][] cacheDatos;
     private static Object syncNucleo = new Object();
    
@@ -44,7 +43,7 @@ public class Nucleo extends Thread
         this.nombre = nombre;
         registro = new int[32];
         cacheDatos = new int[6][4];
-        
+        bandera = false;
         this.procesador = procesador;
         
         posicionCacheX = 0;
@@ -76,52 +75,75 @@ public class Nucleo extends Thread
         System.out.println("Nucleo " + nombre + " inicializado.");
     }
     
-    public void simularNucleo()
+    public synchronized void simularNucleo()
     {
     	System.out.println("Comenzando simulacion de Nucleo " + nombre + " del Procesador " + procesador.nombre);
     	
-    	while(!verificarCola())
+    	while(!procesador.ultimoHilillo)
     	{
-    		//System.out.println("Quantum de nucleo " + nombre + " del Procesador " + procesador.nombre + " es " + quantum);
-    		synchronized(procesador.colaContextos) //Si la cola de contextos no est� bloqueada, bloquearla
+    		
+    		synchronized(procesador.colaContextos)
     		{
-    			this.etiquetaContexto = procesador.colaContextos.get(0).getEtiqueta(); //Se obtiene la etiqueta de un contexto
-    			copiarARegistro(procesador.colaContextos.get(0)); //Se copian los valores del contexto al registro
-    			this.pc = procesador.colaContextos.get(0).getPc(); //Se actualiza el pc con el valor de dicho contexto
-        		actualizarCola(); //Se saca el contexto de la cabeza de la cola y se a�ade al final
-        		
-        		System.out.println("Nucleo " + nombre + " del Procesador " + procesador.nombre + " ejecutando hilillo " + etiquetaContexto);
-    		}
-    		
-    		int[] instruccion = getInstruccion();
-    		
-    		while(instruccion[0] != 63 && quantum > 0) //Se leen y ejecutan las instrucciones de un hilillo hasta que este se acabe o se termine el quantum
-    		{
-    			imprimirArreglo(instruccion, instruccion.length);
-    			ejecutarOperacion(instruccion); //Al ser ejecutada, tanto el quantum como el PC son actualizados
-    			instruccion = getInstruccion(); //Se agarra la siguiente instruccion del hilillo
-    		}
-    		
-    		quantum = Principal.quantum; //Se resetea el valor del quantum
-    		
-    		if(instruccion[0] == 63) //Si se llego a la instruccion FIN, se saca el contexto del hilillo de la cola de contextos
-			{
-    			synchronized(procesador.colaContextos)
-    			{
-    				Contexto contextoRemovido = procesador.colaContextos.remove(etiquetaContexto); //Se elimina el contexto del hilillo de la cola de contextos
-    				procesador.matrizContextos.add(contextoRemovido); //El contexto eliminado es incluido en la matriz de contextos para ser desplegado al final de la simulacion
-    				System.out.println("Ejecucion de hilillo " + etiquetaContexto + " finalizada para el nucleo " + nombre + " del Procesador " + procesador.nombre);
-    			}
-			}
-    		else //Si se acaba el quantum para este hilillo, se realiza un cambio de contexto
-    		{
-    			synchronized(procesador.colaContextos)
-    			{
-    				copiarAContexto(procesador.colaContextos.get(etiquetaContexto)); //Se copian los valores de registro y pc al contexto relevante
-    				System.out.println("Cambio de contexto del nucleo " + nombre + " del Procesador " + procesador.nombre);
-    			}
     			
+    			if(procesador.colaContextos.size() == 1 && !procesador.ultimoHilillo)
+    			{
+    				procesador.ultimoHilillo = true;
+    				bandera = true;
+    			}
     		}
+    		
+    		if(!bandera)
+    		{
+    			//System.out.println("Quantum de nucleo " + nombre + " del Procesador " + procesador.nombre + " es " + quantum);
+        		synchronized(procesador.colaContextos) //Si la cola de contextos no est� bloqueada, bloquearla
+        		{
+        			this.etiquetaContexto = procesador.colaContextos.get(0).getEtiqueta(); //Se obtiene la etiqueta de un contexto
+        			copiarARegistro(procesador.colaContextos.get(0)); //Se copian los valores del contexto al registro
+        			this.pc = procesador.colaContextos.get(0).getPc(); //Se actualiza el pc con el valor de dicho contexto
+            		actualizarCola(); //Se saca el contexto de la cabeza de la cola y se a�ade al final
+            		
+            		System.out.println("Nucleo " + nombre + " del Procesador " + procesador.nombre + " ejecutando hilillo " + etiquetaContexto);
+        		}
+        		
+        		int[] instruccion = getInstruccion();
+        		
+        		while(instruccion[0] != 63 && quantum > 0) //Se leen y ejecutan las instrucciones de un hilillo hasta que este se acabe o se termine el quantum
+        		{
+        			imprimirArreglo(instruccion, instruccion.length);
+        			ejecutarOperacion(instruccion); //Al ser ejecutada, tanto el quantum como el PC son actualizados
+        			instruccion = getInstruccion(); //Se agarra la siguiente instruccion del hilillo
+        		}
+        		
+        		quantum = Principal.quantum; //Se resetea el valor del quantum
+        		
+        		if(instruccion[0] == 63) //Si se llego a la instruccion FIN, se saca el contexto del hilillo de la cola de contextos
+    			{
+        			synchronized(procesador.colaContextos)
+        			{
+        				int size = procesador.colaContextos.size();
+        		        System.out.println("Tamano cola de contextos de procesador " + procesador.nombre + ": " + size);
+        		        //System.out.println("Etiqueta de contexto a eliminar por el procesador " + procesador.nombre + ": " + this.etiquetaContexto);
+        		        //System.out.println("Cabeza de la cola del procesador " + procesador.nombre + ": " + procesador.colaContextos.get(0).getEtiqueta());
+
+        		        Contexto contextoRemovido = procesador.colaContextos.remove(0); //Se elimina el contexto del hilillo de la cola de contextos
+            			procesador.matrizContextos.add(contextoRemovido); //El contexto eliminado es incluido en la matriz de contextos para ser desplegado al final de la simulacion
+        		        
+        				
+        				
+        				System.out.println("Ejecucion de hilillo " + etiquetaContexto + " finalizada por el nucleo " + nombre + " del Procesador " + procesador.nombre);
+        			}
+    			}
+        		else //Si se acaba el quantum para este hilillo, se realiza un cambio de contexto
+        		{
+        			synchronized(procesador.colaContextos)
+        			{
+        				copiarAContexto(procesador.colaContextos.get(0)); //Se copian los valores de registro y pc al contexto relevante
+        				System.out.println("Cambio de contexto del nucleo " + nombre + " del Procesador " + procesador.nombre);
+        			}
+        			
+        		}
+    		}
+    		
     	}
 
     	//Si la cola de contextos est� vacia entonces no hay mas hilillo que ejecutar. El nucleo espera su terminacion.
