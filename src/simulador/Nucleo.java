@@ -260,7 +260,7 @@ public class Nucleo extends Thread
   //Metodo que convierte una direccion de memoria a un numero de bloque
     public int convertirDireccionANumBloque(int direccionMem)
     {
-    	return direccionMem / 4; //El tama�o de bloque de la cache de instrucciones es 4
+    	return direccionMem / 16; //El tama�o de bloque de la cache de instrucciones es 4
     }
     
   //Metodo que convierte una direccion de memoria a una posicion de cache
@@ -350,6 +350,7 @@ public class Nucleo extends Thread
 	    	case 35: // lw
 	    		System.out.println("Ejecutando LW " + ins[2] + ", " + ins[3] + "(" + ins[1] + ") :");
 	    		loadWord(ins[3] + this.registro[ins[1]], ins[2]);
+	    		this.pc += 4;
 	    		break;
 	    	case 43: // sw
 	    		System.out.println("Ejecutando SW " + ins[2] + ", " + ins[3] + "(" + ins[1] + ") :");
@@ -484,7 +485,8 @@ public class Nucleo extends Thread
     //Metodo que ejecuta la instruccion LW
     private void loadWord(int dir, int reg)
 	{
-		int palabraMem = convertirDireccionANumPalabra(dir);    //numero de palabra que se desea poner en registro 
+		
+    	int palabraMem = convertirDireccionANumPalabra(dir);    //numero de palabra que se desea poner en registro 
 		int bloqueMem = convertirDireccionANumBloque(dir);      //numero de bloque que se desea poner en cache
 		int bloqueCach = convertirDireccionAPosicionCache(dir);      //numero de bloque en cache donde se va a subir
 		Lock cache ;
@@ -550,6 +552,8 @@ public class Nucleo extends Thread
 									} finally
 									{
 										direcP0.unlock(); //Libero directorio local 
+										this.registro[reg] = this.cacheDatos[bloqueCach][palabraMem];
+										cargo=true;
 									}
 								}
 							} else
@@ -577,11 +581,15 @@ public class Nucleo extends Thread
 											} finally
 											{
 												direcP1.unlock(); //Libero directorio externo
+												this.registro[reg] = this.cacheDatos[bloqueCach][palabraMem];
+												cargo=true;
 											}
 										}
 									} finally
 									{
 										busDatos.unlock();
+										this.registro[reg] = this.cacheDatos[bloqueCach][palabraMem];
+										cargo=true;
 									}
 								}
 							}
@@ -608,10 +616,10 @@ public class Nucleo extends Thread
 								switch (estadoBloque)
 								{
 								case 0: //bloque no esta en ningun cache
-									System.arraycopy(pro.memDatos, (bloqueMem * 4), this.cacheDatos[bloqueMem], 0, 4);
+									System.arraycopy(pro.memDatos, (bloqueMem * 4), this.cacheDatos[bloqueCach], 0, 4);
 									break;
 								case 1: //bloque esta en algun cache, pero no a sido modificado
-									System.arraycopy(pro.memDatos, (bloqueMem * 4), this.cacheDatos[bloqueMem], 0, 4);
+									System.arraycopy(pro.memDatos, (bloqueMem * 4), this.cacheDatos[bloqueCach], 0, 4);
 									break;
 								case 2: //bloque esta en algun cache, pero a sido modificado
 									boolean flagCacheRemota;
@@ -649,8 +657,8 @@ public class Nucleo extends Thread
 									System.out.println("Error en tipo de estado");
 									break;
 								}
-								this.cacheDatos[4][bloqueMem] = bloqueMem; //indico bloque de memoria al que pertenece
-								this.cacheDatos[5][bloqueMem] = 1; //indico estdo del  bloque
+								this.cacheDatos[4][bloqueCach] = bloqueMem; //indico bloque de memoria al que pertenece
+								this.cacheDatos[5][bloqueCach] = 1; //indico estdo del  bloque
 								if (this.nombreP == 0) //actualizo el directorio
 								{
 									int tipo=(this.nombre == 0)?1:2;
@@ -660,13 +668,14 @@ public class Nucleo extends Thread
 									pro.directorio[bloqueMem][3] = 1;
 								}
 								pro.directorio[bloqueMem][4] = 1;
-								
-								System.arraycopy(pro.memDatos, 0, this.cacheDatos[bloqueCach], bloqueMem * 4 , 4);
+								System.arraycopy(pro.memDatos, bloqueMem * 4, this.cacheDatos[bloqueCach], 0 , 4);
 								pro.directorio[4][bloqueCach] = 1;
 								pro.directorio[5][bloqueCach] = 1;
 							} finally
 							{
 								direcP0.unlock();
+								this.registro[reg] = this.cacheDatos[bloqueCach][palabraMem];
+								cargo=true;
 							}
 						}
 				
@@ -674,6 +683,8 @@ public class Nucleo extends Thread
 				} finally
 				{
 					cache.unlock();
+					this.registro[reg] = this.cacheDatos[bloqueCach][palabraMem];
+					cargo=true;
 				}
 			}
 			esperarAvanceTic();
