@@ -77,11 +77,12 @@ public class Nucleo extends Thread
         System.out.println("Nucleo " + nombre + " inicializado.");
     }
     
-    public synchronized void simularNucleo()
+    public void simularNucleo()
     {
     	System.out.println("Comenzando simulacion de Nucleo " + nombre + " del Procesador " + procesador.nombre);
     	
     	while(!procesador.ultimoHilillo)
+    	//while(!verificarCola())	
     	{
     		
     		synchronized(procesador.colaContextos)
@@ -90,11 +91,16 @@ public class Nucleo extends Thread
     			if(procesador.colaContextos.size() == 1 && !procesador.ultimoHilillo)
     			{
     				procesador.ultimoHilillo = true;
-    				bandera = true;
+    				if(procesador.nombre == 0)
+    				{
+    					bandera = true;
+    				}
+    				
     			}
     		}
     		
     		if(!bandera)
+    		//synchronized(procesador.colaContextos)
     		{
     			//System.out.println("Quantum de nucleo " + nombre + " del Procesador " + procesador.nombre + " es " + quantum);
         		synchronized(procesador.colaContextos) //Si la cola de contextos no est� bloqueada, bloquearla
@@ -114,7 +120,7 @@ public class Nucleo extends Thread
         		
         		while(instruccion[0] != 63 && quantum > 0) //Se leen y ejecutan las instrucciones de un hilillo hasta que este se acabe o se termine el quantum
         		{
-        			imprimirArreglo(instruccion, instruccion.length);
+        			//imprimirArreglo(instruccion, instruccion.length);
         			ejecutarOperacion(instruccion); //Al ser ejecutada, tanto el quantum como el PC son actualizados
         			instruccion = getInstruccion(); //Se agarra la siguiente instruccion del hilillo
         		}
@@ -123,45 +129,48 @@ public class Nucleo extends Thread
         		
         		quantum = Principal.quantum; //Se resetea el valor del quantum
         		
-        		if(instruccion[0] == 63) //Si se llego a la instruccion FIN, se saca el contexto del hilillo de la cola de contextos
+        		//synchronized(procesador.colaContextos)
     			{
-        			synchronized(procesador.colaContextos)
-        			{
-        				int size = procesador.colaContextos.size();
-        		        System.out.println("Tamano cola de contextos de procesador " + procesador.nombre + ": " + size);
-        		        //System.out.println("Etiqueta de contexto a eliminar por el procesador " + procesador.nombre + ": " + this.etiquetaContexto);
-        		        //System.out.println("Cabeza de la cola del procesador " + procesador.nombre + ": " + procesador.colaContextos.get(0).getEtiqueta());
-        		        
-        		        if(getIndiceCola(etiquetaContexto) != -1)
-        		        {
-        		        	procesador.colaContextos.get(getIndiceCola(etiquetaContexto)).setTiempoEjecucion(fin - inicio);
-        		        	Contexto contextoRemovido = procesador.colaContextos.remove(getIndiceCola(etiquetaContexto)); //Se elimina el contexto del hilillo de la cola de contextos
-                			procesador.matrizContextos.add(contextoRemovido); //El contexto eliminado es incluido en la matriz de contextos para ser desplegado al final de la simulacion
-        		        }
-        		        else
-        		        {
-        		        	System.out.println("----Contexto no encontrado en la cola del procesador " + procesador.nombre);
-        		        }
-        		        
-        				System.out.println("Ejecucion de hilillo " + etiquetaContexto + " finalizada por el nucleo " + nombre + " del Procesador " + procesador.nombre);
-        			}
+	        		if(instruccion[0] == 63) //Si se llego a la instruccion FIN, se saca el contexto del hilillo de la cola de contextos
+	    			{
+	        			synchronized(procesador.colaContextos)
+	        			{
+	        				int size = procesador.colaContextos.size();
+	        		        //System.out.println("Tamano cola de contextos de procesador " + procesador.nombre + ": " + size);
+	        		        //System.out.println("Etiqueta de contexto a eliminar por el procesador " + procesador.nombre + ": " + this.etiquetaContexto);
+	        		        //System.out.println("Cabeza de la cola del procesador " + procesador.nombre + ": " + procesador.colaContextos.get(0).getEtiqueta());
+	        		        
+	        		        if(getIndiceCola(etiquetaContexto) != -1)
+	        		        {
+	        		        	procesador.colaContextos.get(getIndiceCola(etiquetaContexto)).setTiempoEjecucion(fin - inicio);
+	        		        	Contexto contextoRemovido = procesador.colaContextos.remove(getIndiceCola(etiquetaContexto)); //Se elimina el contexto del hilillo de la cola de contextos
+	                			procesador.matrizContextos.add(contextoRemovido); //El contexto eliminado es incluido en la matriz de contextos para ser desplegado al final de la simulacion
+	        		        }
+	        		        else
+	        		        {
+	        		        	System.out.println("----Contexto no encontrado en la cola del procesador " + procesador.nombre);
+	        		        }
+	        		        
+	        				System.out.println("Ejecucion de hilillo " + etiquetaContexto + " finalizada por el nucleo " + nombre + " del Procesador " + procesador.nombre);
+	        			}
+	    			}
+	        		else //Si se acaba el quantum para este hilillo, se realiza un cambio de contexto
+	        		{
+	        			synchronized(procesador.colaContextos)
+	        			{
+	        				if(getIndiceCola(etiquetaContexto) != -1)
+	        		        {
+	        					copiarAContexto(procesador.colaContextos.get(getIndiceCola(etiquetaContexto)), fin - inicio); //Se copian los valores de registro y pc al contexto relevante
+	        					System.out.println("Cambio de contexto del nucleo " + nombre + " del Procesador " + procesador.nombre);
+	        		        }
+	        				else
+	        		        {
+	        		        	System.out.println("----Contexto no encontrado en la cola del procesador " + procesador.nombre);
+	        		        }
+	        			}
+	        			
+	        		}
     			}
-        		else //Si se acaba el quantum para este hilillo, se realiza un cambio de contexto
-        		{
-        			synchronized(procesador.colaContextos)
-        			{
-        				if(getIndiceCola(etiquetaContexto) != -1)
-        		        {
-        					copiarAContexto(procesador.colaContextos.get(getIndiceCola(etiquetaContexto)), fin - inicio); //Se copian los valores de registro y pc al contexto relevante
-        					System.out.println("Cambio de contexto del nucleo " + nombre + " del Procesador " + procesador.nombre);
-        		        }
-        				else
-        		        {
-        		        	System.out.println("----Contexto no encontrado en la cola del procesador " + procesador.nombre);
-        		        }
-        			}
-        			
-        		}
     		}
     		
     	}
@@ -210,7 +219,7 @@ public class Nucleo extends Thread
 				if(Principal.hilosListosParaTic == 3)
 		    	{
 	    			Principal.hilosListosParaTic = 0; //Se reinicializa el contador
-	    			System.out.println("Todos los hilos listos para el avance de tic.");
+	    			//System.out.println("Todos los hilos listos para el avance de tic.");
 	    			Principal.syncPrincipal.notify(); //Se notifica al hilo principal para que este avance el tic
 	    			try 
 		        	{
@@ -380,10 +389,10 @@ public class Nucleo extends Thread
     	//Si el numero de bloque es distinto al numero de hilillo, entonces hay un fallo de cache
     	if(etiquetaBloque != convertirDireccionANumBloque(pc))
     	{
-    		System.out.println("Nucleo " + nombre + " de Procesador " + procesador.nombre + " obtuvo un cache FAIL.");
+    		//System.out.println("Nucleo " + nombre + " de Procesador " + procesador.nombre + " obtuvo un cache FAIL.");
     		copiarAcacheInstrucciones(); //Se resuelve el fallo de cache al copiar el bloque de memoria al bloque de cache
     	}
-    	System.out.println("Pc de nucleo " + nombre + " de Procesador " + procesador.nombre + ": " + convertirPC());
+    	//System.out.println("Pc de nucleo " + nombre + " de Procesador " + procesador.nombre + ": " + convertirPC());
     	//Se copia la instruccion de cache a la variable
     	
     	synchronized(procesador.cacheInstrucciones)
@@ -460,6 +469,12 @@ public class Nucleo extends Thread
     	{
     		Contexto cabeza = procesador.colaContextos.remove(0);
         	procesador.colaContextos.add(cabeza);
+        	System.out.print("Cola P" + procesador.nombre + " :");
+        	for(Contexto c : procesador.colaContextos)
+        	{
+        		System.out.print(c.getEtiqueta() + " > ");
+        	}
+        	System.out.println();
     	}
     	
     }
