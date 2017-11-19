@@ -94,6 +94,7 @@ public class Nucleo extends Thread
     				if(procesador.nombre == 0)
     				{
     					bandera = true;
+    					
     				}
     				
     			}
@@ -105,10 +106,17 @@ public class Nucleo extends Thread
     			//System.out.println("Quantum de nucleo " + nombre + " del Procesador " + procesador.nombre + " es " + quantum);
         		synchronized(procesador.colaContextos) //Si la cola de contextos no est� bloqueada, bloquearla
         		{
+        			while(procesador.colaContextos.get(0).getEjecutado())
+        			{
+        				System.out.println("Contexto  " + procesador.colaContextos.get(0).getEtiqueta() + " ya esta siendo ejecutado.");
+        				actualizarCola(); // Si el contexto del hilillo esta siendo ejecutado por otro nucleo, escoger el siguiente contexto de la cola
+        			}
         			
+        			procesador.colaContextos.get(0).setEjecutado(true);
         			this.etiquetaContexto = procesador.colaContextos.get(0).getEtiqueta(); //Se obtiene la etiqueta de un contexto
         			copiarARegistro(procesador.colaContextos.get(0)); //Se copian los valores del contexto al registro
         			this.pc = procesador.colaContextos.get(0).getPc(); //Se actualiza el pc con el valor de dicho contexto
+        			System.out.println("Pc de Nucleo " + nombre + " del Procesador " + procesador.nombre + ": " + this.pc);
             		actualizarCola(); //Se saca el contexto de la cabeza de la cola y se a�ade al final
             		
             		System.out.println("Nucleo " + nombre + " del Procesador " + procesador.nombre + " ejecutando hilillo " + etiquetaContexto);
@@ -143,6 +151,7 @@ public class Nucleo extends Thread
 	        		        if(getIndiceCola(etiquetaContexto) != -1)
 	        		        {
 	        		        	procesador.colaContextos.get(getIndiceCola(etiquetaContexto)).setTiempoEjecucion(fin - inicio);
+	        		        	copiarAContexto(procesador.colaContextos.get(getIndiceCola(etiquetaContexto)), fin - inicio); //Se copian los valores de registro y pc al contexto relevante
 	        		        	Contexto contextoRemovido = procesador.colaContextos.remove(getIndiceCola(etiquetaContexto)); //Se elimina el contexto del hilillo de la cola de contextos
 	                			procesador.matrizContextos.add(contextoRemovido); //El contexto eliminado es incluido en la matriz de contextos para ser desplegado al final de la simulacion
 	        		        }
@@ -160,6 +169,7 @@ public class Nucleo extends Thread
 	        			{
 	        				if(getIndiceCola(etiquetaContexto) != -1)
 	        		        {
+	        					procesador.colaContextos.get(getIndiceCola(etiquetaContexto)).setEjecutado(false); //El contexto  indica que el hilillo puede ser ejecutado por otro nucleo
 	        					copiarAContexto(procesador.colaContextos.get(getIndiceCola(etiquetaContexto)), fin - inicio); //Se copian los valores de registro y pc al contexto relevante
 	        					System.out.println("Cambio de contexto del nucleo " + nombre + " del Procesador " + procesador.nombre);
 	        		        }
@@ -269,7 +279,7 @@ public class Nucleo extends Thread
   //Metodo que convierte una direccion de memoria a un numero de bloque
     public int convertirDireccionANumBloque(int direccionMem)
     {
-    	return direccionMem / 16; //El tama�o de bloque de la cache de instrucciones es 4
+    	return direccionMem / 4; //El tama�o de bloque de la cache de instrucciones es 4
     }
     
   //Metodo que convierte una direccion de memoria a una posicion de cache
@@ -299,6 +309,7 @@ public class Nucleo extends Thread
     public void getInformacionCacheI(int numBloqueCache, int palabra)
     {
     	posicionCacheX = palabra;
+    	System.out.println("posicionCacheX para nucleo " + nombre + " de Procesador " + procesador.nombre + ": " + posicionCacheX);
     	posicionCacheY = numBloqueCache * 4;
     	synchronized(procesador.cacheInstrucciones)
     	{
@@ -313,65 +324,65 @@ public class Nucleo extends Thread
     	switch (ins[0]) 
     	{
 	    	case 8: // daddi
-	    		System.out.println("Ejecutando DADDI " + ins[1] + ", " + ins[2] + ", " + ins[3] + " :");
+	    		System.out.println("Nucleo " + nombre + " de Procesador " + procesador.nombre + " Ejecutando DADDI " + ins[1] + ", " + ins[2] + ", " + ins[3] + " :");
 	    		this.registro[ins[2]] = this.registro[ins[1]] + ins[3];
-	    		this.pc += 4;
+	    		this.pc += 1;
 	    		break;
 	    	case 32: // dadd
-	    		System.out.println("Ejecutando DADD " + ins[1] + ", " + ins[2] + ", " + ins[3] + " :");
+	    		System.out.println("Nucleo " + nombre + " de Procesador " + procesador.nombre + " Ejecutando DADD " + ins[1] + ", " + ins[2] + ", " + ins[3] + " :");
 	    		this.registro[ins[3]] = this.registro[ins[1]] + this.registro[ins[2]];
-	    		this.pc += 4;
+	    		this.pc += 1;
 	    		break;
 	    	case 34: // dsub
-	    		System.out.println("Ejecutando DSUB " + ins[1] + ", " + ins[2] + ", " + ins[3] + " :");
+	    		System.out.println("Nucleo " + nombre + " de Procesador " + procesador.nombre + " Ejecutando DSUB " + ins[1] + ", " + ins[2] + ", " + ins[3] + " :");
 	    		this.registro[ins[3]] = this.registro[ins[1]] - this.registro[ins[2]];
-	    		this.pc += 4;
+	    		this.pc += 1;
 	    		break;
 	    	case 12: // dmul
-	    		System.out.println("Ejecutando DMUL " + ins[1] + ", " + ins[2] + ", " + ins[3] + " :");
+	    		System.out.println("Nucleo " + nombre + " de Procesador " + procesador.nombre + " Ejecutando DMUL " + ins[1] + ", " + ins[2] + ", " + ins[3] + " :");
 	    		this.registro[ins[3]] = this.registro[ins[1]] * this.registro[ins[2]];
-	    		this.pc += 4;
+	    		this.pc += 1;
 	    		break;
 	    	case 14: // ddiv
-	    		System.out.println("Ejecutando DDIV " + ins[1] + ", " + ins[2] + ", " + ins[3] + " :");
+	    		System.out.println("Nucleo " + nombre + " de Procesador " + procesador.nombre + " Ejecutando DDIV " + ins[1] + ", " + ins[2] + ", " + ins[3] + " :");
 	    		this.registro[ins[3]] = this.registro[ins[1]] / this.registro[ins[2]];
-	    		this.pc += 4;
+	    		this.pc += 1;
 	    		break;
 	    	case 4: // beqz
-	    		System.out.println("Ejecutando BEQZ " + ins[1] + ", " + ins[3] + " :");
+	    		System.out.println("Nucleo " + nombre + " de Procesador " + procesador.nombre + " Ejecutando BEQZ " + ins[1] + ", " + ins[3] + " :");
 	    		if(this.registro[ins[1]] == 0)
-	    			this.pc += ins[3] * 4;
+	    			this.pc += ins[3] * 1;
 	    		break;
 	    	case 5: // bnez
-	    		System.out.println("Ejecutando BNEZ " + ins[1] + ", " + ins[3] + " :");
+	    		System.out.println("Nucleo " + nombre + " de Procesador " + procesador.nombre + " Ejecutando BNEZ " + ins[1] + ", " + ins[3] + " :");
 	    		if(this.registro[ins[1]] != 0)
-	    			this.pc += ins[3] * 4;
+	    			this.pc += ins[3] * 1;
 	    		break;
 	    	case 3: // jal
-	    		System.out.println("Ejecutando JAL "+ ins[3] + " :");
+	    		System.out.println("Nucleo " + nombre + " de Procesador " + procesador.nombre + " Ejecutando JAL "+ ins[3] + " :");
 	    		this.registro[31]= this.pc;
 	    		this.pc += ins[3];
 	    		break;
 	    	case 2: // jr
-	    		System.out.println("Ejecutando JR " + ins[1] + " :");
+	    		System.out.println("Nucleo " + nombre + " de Procesador " + procesador.nombre + " Ejecutando JR " + ins[1] + " :");
 	    		this.pc = this.registro[ins[1]];
 	    		break;
 	    	case 35: // lw
-	    		System.out.println("Ejecutando LW " + ins[2] + ", " + ins[3] + "(" + ins[1] + ") :");
+	    		System.out.println("Nucleo " + nombre + " de Procesador " + procesador.nombre + " Ejecutando LW " + ins[2] + ", " + ins[3] + "(" + ins[1] + ") :");
 	    		loadWord(ins[3] + this.registro[ins[1]], ins[2]);
-	    		this.pc += 4;
+	    		this.pc += 1;
 	    		break;
 	    	case 43: // sw
-	    		System.out.println("Ejecutando SW " + ins[2] + ", " + ins[3] + "(" + ins[1] + ") :");
+	    		System.out.println("Nucleo " + nombre + " de Procesador " + procesador.nombre + " Ejecutando SW " + ins[2] + ", " + ins[3] + "(" + ins[1] + ") :");
 	    		storeWord(ins[3] + this.registro[ins[1]], ins[2]);
 	    		break;
 	    	case 63: // fin
 	    		System.out.println("Instruccion FIN ejecutada.");
-	    		this.pc += 4;
+	    		this.pc += 1;
 	    		break;
 	    	default:
 	    		System.out.println("Instruccion no valida.");
-	    		this.pc += 4;
+	    		this.pc += 1;
 	    		break;
     	}
     	this.quantum--; //Se reduce el quantum de 1 por cada instruccion ejecutar
@@ -380,7 +391,7 @@ public class Nucleo extends Thread
     
     //Metodo que retorna la instruccion a ser ejecutada dependiendo del pc. En caso de que no se encuentre el 
     //numero de bloque apropiado, se produce un fallo de cache de instrucciones
-    public int[] getInstruccion()
+    public synchronized int[] getInstruccion()
     {
     	int[] instruccion = new int[4];
 
@@ -432,7 +443,7 @@ public class Nucleo extends Thread
     		
 	    	//imprimirArreglo(procesador.cacheInstrucciones[posicionCacheX], procesador.cacheInstrucciones[posicionCacheX].length);
 	    	procesador.cacheInstrucciones[4][convertirDireccionAPosicionCache(pc) * 4] = convertirDireccionANumBloque(pc); //Se actualiza la etiqueta del bloque
-	    	//Procesador.imprimirMatriz(procesador.cacheInstrucciones);
+	    	Procesador.imprimirMatriz(procesador.cacheInstrucciones);
     	}
     }
     

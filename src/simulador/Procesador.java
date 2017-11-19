@@ -228,7 +228,7 @@ public class Procesador
     	System.out.println();
     	for(Contexto c : matrizContextos)
     	{
-    		System.out.print("Contexto " + c.getEtiqueta() + " => Tiempo ejecucion: " + c.getTiempoEjecucion() + "|  Ciclos de ejecucion: " + c.getCiclos() + "|  Registros: ");
+    		System.out.print("Contexto " + c.getEtiqueta() + " => " + "Pc: " + c.getPc() + "| Tiempo ejecucion: " + c.getTiempoEjecucion() + "|  Ciclos de ejecucion: " + c.getCiclos() + "|  Registros: ");
     		
     		for(int i = 0; i < c.getRegistros().length; i++)
             {

@@ -1,9 +1,5 @@
 package simulador;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-
 public class Contexto 
 {
 	private int[] registros;
@@ -11,6 +7,7 @@ public class Contexto
 	public float tiempoEjecucion;
 	public int numeroCiclos;
 	public int pc;
+	public boolean ejecutado; //Determina si el hilillo del contexto esta siendo ejecutado
 	
 	//Constructor
 	public Contexto(int etiqueta)
@@ -20,6 +17,7 @@ public class Contexto
 		tiempoEjecucion = 0;
 		numeroCiclos = 0;
 		pc = 0;
+		ejecutado = false;
 		
 		for(int i = 0; i < registros.length; i++)
     	{
@@ -71,6 +69,16 @@ public class Contexto
 	public void setPc(int pc)
 	{
 		this.pc = pc;
+	}
+	
+	public boolean getEjecutado()
+	{
+		return ejecutado;
+	}
+	
+	public void setEjecutado(boolean ejecutado)
+	{
+		this.ejecutado = ejecutado;
 	}
 	
 	public float getTiempoEjecucion()
