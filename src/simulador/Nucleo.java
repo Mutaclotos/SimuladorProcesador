@@ -370,7 +370,6 @@ public class Nucleo extends Thread
 	    	case 35: // lw
 	    		System.out.println("Nucleo " + nombre + " de Procesador " + procesador.nombre + " Ejecutando LW " + ins[2] + ", " + ins[3] + "(" + ins[1] + ") :");
 	    		loadWord(ins[3] + this.registro[ins[1]], ins[2]);
-	    		this.pc += 1;
 	    		break;
 	    	case 43: // sw
 	    		System.out.println("Nucleo " + nombre + " de Procesador " + procesador.nombre + " Ejecutando SW " + ins[2] + ", " + ins[3] + "(" + ins[1] + ") :");
@@ -411,6 +410,8 @@ public class Nucleo extends Thread
     	{//Se copia una palabra de la cache de instrucciones a la variable a retornar
     		System.arraycopy(procesador.cacheInstrucciones[posicionCacheX], posicionCacheY, instruccion, 0, instruccion.length );
     	}
+    	
+    	
     	return instruccion;
     }
     
@@ -424,9 +425,10 @@ public class Nucleo extends Thread
     	{
     		tempArray = new int[4][4];
     		//System.out.println(procesador.memInstrucciones.length + " " +convertirPC());
-    		
+    		System.out.println("Pc convertido de Nucleo " + nombre + "del Procesador " + procesador.nombre + ": " + convertirPC());
     		for(int i = 0; i < 4; i++)//Se copia el bloque entero de la memoria de instrucciones a una matriz temporal
     		{
+    			
     			System.arraycopy(procesador.memInstrucciones, convertirPC() + indice, tempArray[i], 0, tempArray[i].length);
     			indice += 4;
     		}

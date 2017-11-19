@@ -6,6 +6,7 @@ public class Contexto
 	public int etiqueta;
 	public float tiempoEjecucion;
 	public int numeroCiclos;
+	public int contadorPalabra;
 	public int pc;
 	public boolean ejecutado; //Determina si el hilillo del contexto esta siendo ejecutado
 	
@@ -18,6 +19,7 @@ public class Contexto
 		numeroCiclos = 0;
 		pc = 0;
 		ejecutado = false;
+		contadorPalabra = 0;
 		
 		for(int i = 0; i < registros.length; i++)
     	{
@@ -32,6 +34,23 @@ public class Contexto
     	{
 			this.registros[i] = registros[i];
     	}
+	}
+	
+	public void setContadorPalabra()
+	{
+		if(contadorPalabra >= 3)
+		{
+			contadorPalabra = 0;
+		}
+		else
+		{
+			contadorPalabra++;
+		}
+	}
+	
+	public int getContadorPalabra()
+	{
+		return contadorPalabra;
 	}
 	
 	//Retorna una instruccion de 4 enteros del hilillo
