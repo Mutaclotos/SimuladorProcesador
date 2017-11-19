@@ -116,7 +116,7 @@ public class Nucleo extends Thread
         			this.etiquetaContexto = procesador.colaContextos.get(0).getEtiqueta(); //Se obtiene la etiqueta de un contexto
         			copiarARegistro(procesador.colaContextos.get(0)); //Se copian los valores del contexto al registro
         			this.pc = procesador.colaContextos.get(0).getPc(); //Se actualiza el pc con el valor de dicho contexto
-        			System.out.println("Pc de Nucleo " + nombre + " del Procesador " + procesador.nombre + ": " + this.pc);
+        			//System.out.println("Pc de Nucleo " + nombre + " del Procesador " + procesador.nombre + ": " + this.pc);
             		actualizarCola(); //Se saca el contexto de la cabeza de la cola y se a�ade al final
             		
             		System.out.println("Nucleo " + nombre + " del Procesador " + procesador.nombre + " ejecutando hilillo " + etiquetaContexto);
@@ -279,7 +279,7 @@ public class Nucleo extends Thread
   //Metodo que convierte una direccion de memoria a un numero de bloque
     public int convertirDireccionANumBloque(int direccionMem)
     {
-    	return direccionMem / 4; //El tama�o de bloque de la cache de instrucciones es 4
+    	return direccionMem / 16; //El tama�o de bloque de la cache de instrucciones es 16
     }
     
   //Metodo que convierte una direccion de memoria a una posicion de cache
@@ -291,8 +291,8 @@ public class Nucleo extends Thread
   //Metodo que convierte una direccion de memoria a una palabra
     public int convertirDireccionANumPalabra(int direccionMem)
     {
-    	//return (direccionMem % 4) / 4;
-    	return direccionMem % 4;
+    	return (direccionMem % 16) / 4;
+    	//return direccionMem % 4;
     }
     
   //Metodo que convierte un numero de bloque y palabra a una direccion en la memoria de instrucciones
@@ -309,7 +309,7 @@ public class Nucleo extends Thread
     public void getInformacionCacheI(int numBloqueCache, int palabra)
     {
     	posicionCacheX = palabra;
-    	System.out.println("posicionCacheX para nucleo " + nombre + " de Procesador " + procesador.nombre + ": " + posicionCacheX);
+    	//System.out.println("posicionCacheX para nucleo " + nombre + " de Procesador " + procesador.nombre + ": " + posicionCacheX);
     	posicionCacheY = numBloqueCache * 4;
     	synchronized(procesador.cacheInstrucciones)
     	{
@@ -326,37 +326,37 @@ public class Nucleo extends Thread
 	    	case 8: // daddi
 	    		System.out.println("Nucleo " + nombre + " de Procesador " + procesador.nombre + " Ejecutando DADDI " + ins[1] + ", " + ins[2] + ", " + ins[3] + " :");
 	    		this.registro[ins[2]] = this.registro[ins[1]] + ins[3];
-	    		this.pc += 1;
+	    		this.pc += 4;
 	    		break;
 	    	case 32: // dadd
 	    		System.out.println("Nucleo " + nombre + " de Procesador " + procesador.nombre + " Ejecutando DADD " + ins[1] + ", " + ins[2] + ", " + ins[3] + " :");
 	    		this.registro[ins[3]] = this.registro[ins[1]] + this.registro[ins[2]];
-	    		this.pc += 1;
+	    		this.pc += 4;
 	    		break;
 	    	case 34: // dsub
 	    		System.out.println("Nucleo " + nombre + " de Procesador " + procesador.nombre + " Ejecutando DSUB " + ins[1] + ", " + ins[2] + ", " + ins[3] + " :");
 	    		this.registro[ins[3]] = this.registro[ins[1]] - this.registro[ins[2]];
-	    		this.pc += 1;
+	    		this.pc += 4;
 	    		break;
 	    	case 12: // dmul
 	    		System.out.println("Nucleo " + nombre + " de Procesador " + procesador.nombre + " Ejecutando DMUL " + ins[1] + ", " + ins[2] + ", " + ins[3] + " :");
 	    		this.registro[ins[3]] = this.registro[ins[1]] * this.registro[ins[2]];
-	    		this.pc += 1;
+	    		this.pc += 4;
 	    		break;
 	    	case 14: // ddiv
 	    		System.out.println("Nucleo " + nombre + " de Procesador " + procesador.nombre + " Ejecutando DDIV " + ins[1] + ", " + ins[2] + ", " + ins[3] + " :");
 	    		this.registro[ins[3]] = this.registro[ins[1]] / this.registro[ins[2]];
-	    		this.pc += 1;
+	    		this.pc += 4;
 	    		break;
 	    	case 4: // beqz
 	    		System.out.println("Nucleo " + nombre + " de Procesador " + procesador.nombre + " Ejecutando BEQZ " + ins[1] + ", " + ins[3] + " :");
 	    		if(this.registro[ins[1]] == 0)
-	    			this.pc += ins[3] * 1;
+	    			this.pc += ins[3] * 4;
 	    		break;
 	    	case 5: // bnez
 	    		System.out.println("Nucleo " + nombre + " de Procesador " + procesador.nombre + " Ejecutando BNEZ " + ins[1] + ", " + ins[3] + " :");
 	    		if(this.registro[ins[1]] != 0)
-	    			this.pc += ins[3] * 1;
+	    			this.pc += ins[3] * 4;
 	    		break;
 	    	case 3: // jal
 	    		System.out.println("Nucleo " + nombre + " de Procesador " + procesador.nombre + " Ejecutando JAL "+ ins[3] + " :");
@@ -377,11 +377,11 @@ public class Nucleo extends Thread
 	    		break;
 	    	case 63: // fin
 	    		System.out.println("Instruccion FIN ejecutada.");
-	    		this.pc += 1;
+	    		this.pc += 4;
 	    		break;
 	    	default:
 	    		System.out.println("Instruccion no valida.");
-	    		this.pc += 1;
+	    		this.pc += 4;
 	    		break;
     	}
     	this.quantum--; //Se reduce el quantum de 1 por cada instruccion ejecutar
@@ -425,7 +425,7 @@ public class Nucleo extends Thread
     	{
     		tempArray = new int[4][4];
     		//System.out.println(procesador.memInstrucciones.length + " " +convertirPC());
-    		System.out.println("Pc convertido de Nucleo " + nombre + "del Procesador " + procesador.nombre + ": " + convertirPC());
+    		//System.out.println("Pc convertido de Nucleo " + nombre + "del Procesador " + procesador.nombre + ": " + convertirPC());
     		for(int i = 0; i < 4; i++)//Se copia el bloque entero de la memoria de instrucciones a una matriz temporal
     		{
     			
@@ -445,7 +445,7 @@ public class Nucleo extends Thread
     		
 	    	//imprimirArreglo(procesador.cacheInstrucciones[posicionCacheX], procesador.cacheInstrucciones[posicionCacheX].length);
 	    	procesador.cacheInstrucciones[4][convertirDireccionAPosicionCache(pc) * 4] = convertirDireccionANumBloque(pc); //Se actualiza la etiqueta del bloque
-	    	Procesador.imprimirMatriz(procesador.cacheInstrucciones);
+	    	//Procesador.imprimirMatriz(procesador.cacheInstrucciones);
     	}
     }
     
