@@ -75,7 +75,7 @@ public class Principal extends Thread
     //Metodo que avanza el reloj de los procesadores. El hilo principal se mantiene en espera hasta que los tres hilos de nucleo estan listos para avanzar el tic
      protected void avanzarReloj()
      {
-    	 //Scanner in = new Scanner(System.in);
+    	 Scanner in = new Scanner(System.in);
     		 //System.out.println("hilosListosParaTic = "+hilosListosParaTic);
          while(hilosTerminados < 3) //La simulacion continua hasta que todos los hilos esten listos para ser terminados
   	      {
@@ -99,15 +99,15 @@ public class Principal extends Thread
   			   
     		  synchronized(syncPrincipal)
   			  {
-    			//Si la ejecucion de la simulacion es manual, se debe oprimir Enter para avanzar el reloj
+    			//Si la ejecucion de la simulacion es manual, se debe oprimir una tecla para avanzar el reloj
     			  //System.out.println(tipoModulacion); 
-        		  /*if(tipoModulacion == 2)
+        		  if(tipoModulacion == 2)
         		  {
         			  if(in.hasNextInt())
         			  {
         				  int num = in.nextInt();
         			  }
-        		  }*/
+        		  }
         		  
     			  reloj++; //Se avanza el reloj
         		  System.out.println("Tick de reloj: " + reloj); 

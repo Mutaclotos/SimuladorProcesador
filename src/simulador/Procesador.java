@@ -20,7 +20,7 @@ public class Procesador
     public int[][] directorio; //El directorio del procesador
     public List<Contexto> colaContextos = new ArrayList<Contexto>(); //Cola circular de contextos
     public List<Contexto> matrizContextos = new ArrayList<Contexto>(); //Matriz que guarda los contextos finales de cada hilillo para ser desplegados al final de la simulacion
-    
+    public Object syncNucleo = new Object();
     public int nombre;
     public boolean ultimoHilillo;
     public Procesador p;

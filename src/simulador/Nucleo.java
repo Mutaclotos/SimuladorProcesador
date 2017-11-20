@@ -129,7 +129,9 @@ public class Nucleo extends Thread
         		while(instruccion[0] != 63 && quantum > 0) //Se leen y ejecutan las instrucciones de un hilillo hasta que este se acabe o se termine el quantum
         		{
         			//imprimirArreglo(instruccion, instruccion.length);
+        			
         			ejecutarOperacion(instruccion); //Al ser ejecutada, tanto el quantum como el PC son actualizados
+        			
         			instruccion = getInstruccion(); //Se agarra la siguiente instruccion del hilillo
         		}
         		
@@ -207,21 +209,26 @@ public class Nucleo extends Thread
     }
     
     //Metodo de sincronizacion de hilos: los hilos esperan hasta estar todos listos para avanzar al siguiente tic y le comunican este hecho al hilo principal
-    public synchronized void esperarAvanceTic()
+    public void esperarAvanceTic()
     {
     	synchronized(syncNucleo)
     	{
+    		
 	    	Principal.hilosListosParaTic++;
+	    	//System.out.println("Hilos listos para tic: " + Principal.hilosListosParaTic);
 	    	if(Principal.hilosListosParaTic < 3) //Los primeros dos hilos en entrar a este bloque de codigo se quedan en espera
 	    	{
 	    		try 
 	        	{
+	    			
 	    			//System.out.println("Nucleo " + nombre + " del Procesador " + procesador.nombre + " esperando avance del tic.");
 	    			syncNucleo.wait();
+	    			
 	            } catch (InterruptedException e) 
 	        	{
 	               e.printStackTrace();
 	            }
+	    		//System.out.println("Nucleo " + nombre + " del Procesador " + procesador.nombre + " test.");
 	    	}
 	    	
 	    	synchronized(Principal.syncPrincipal)
@@ -229,7 +236,8 @@ public class Nucleo extends Thread
 				if(Principal.hilosListosParaTic == 3)
 		    	{
 	    			Principal.hilosListosParaTic = 0; //Se reinicializa el contador
-	    			//System.out.println("Todos los hilos listos para el avance de tic.");
+	    			
+	    			
 	    			Principal.syncPrincipal.notify(); //Se notifica al hilo principal para que este avance el tic
 	    			try 
 		        	{
@@ -385,6 +393,7 @@ public class Nucleo extends Thread
 	    		break;
     	}
     	this.quantum--; //Se reduce el quantum de 1 por cada instruccion ejecutar
+    	
     	esperarAvanceTic();
     }
     
