@@ -401,6 +401,7 @@ public class Nucleo extends Thread
 			System.out.println("Nucleo " + nombre + " de Procesador " + procesador.nombre + " Ejecutando LW " + ins[2]
 					+ ", " + ins[3] + "(" + ins[1] + ") :");
 			loadWord(ins[3] + this.registro[ins[1]], ins[2]);
+			this.pc += 4;
 			break;
 		case 43: // sw
 			System.out.println("Nucleo " + nombre + " de Procesador " + procesador.nombre + " Ejecutando SW " + ins[2]
@@ -551,7 +552,11 @@ public class Nucleo extends Thread
 		int palabraMem = convertirDireccionANumPalabra(dir); //numero de palabra que se desea poner en registro 
 		int bloqueMem = convertirDireccionANumBloque(dir); //numero de bloque que se desea poner en cache
 		int bloqueCach = convertirDireccionAPosicionCache(dir); //numero de bloque en cache donde se va a subir
-
+        int desplazamiento=0;
+        if(bloqueMem>=16)
+        {
+        	desplazamiento=16;
+        }
 		Procesador pro;
 		if (this.nombreP == 0)
 		{
@@ -677,21 +682,21 @@ public class Nucleo extends Thread
 						{
 							try
 							{
-								int estadoBloque = pro.directorio[bloqueMem][3];
+								int estadoBloque = pro.directorio[bloqueMem-desplazamiento][3];
 								switch (estadoBloque)
 								{
 								case 0: //bloque no esta en ningun cache
-									System.arraycopy(pro.memDatos, (bloqueMem * 4), this.cacheDatos[bloqueCach], 0, 4);
+									System.arraycopy(pro.memDatos, (bloqueMem-desplazamiento * 4), this.cacheDatos[bloqueCach], 0, 4);
 									break;
 								case 1: //bloque esta en algun cache, pero no a sido modificado
-									System.arraycopy(pro.memDatos, (bloqueMem * 4), this.cacheDatos[bloqueCach], 0, 4);
+									System.arraycopy(pro.memDatos, (bloqueMem-desplazamiento * 4), this.cacheDatos[bloqueCach], 0, 4);
 									break;
 								case 2: //bloque esta en algun cache, pero a sido modificado
 									boolean flagCacheRemota;
 									Nucleo n;
 									for (int i = 0; i < 3; i++)
 									{
-										if (pro.directorio[bloqueMem][i] == 1)
+										if (pro.directorio[bloqueMem-desplazamiento][i] == 1)
 										{
 											switch (i)
 											{
@@ -727,17 +732,17 @@ public class Nucleo extends Thread
 									System.out.println("Error en tipo de estado");
 									break;
 								}
-								this.cacheDatos[4][bloqueCach] = bloqueMem; //indico bloque de memoria al que pertenece
-								this.cacheDatos[5][bloqueCach] = 1; //indico estdo del  bloque
+								this.cacheDatos[bloqueCach][4] = bloqueMem; //indico bloque de memoria al que pertenece
+								this.cacheDatos[bloqueCach][5] = 1; //indico estdo del  bloque
 								if (this.nombreP == 0) //actualizo el directorio
 								{
 									int tipo = (this.nombre == 0) ? 1 : 2;
-									pro.directorio[bloqueMem][tipo] = 1;
+									pro.directorio[bloqueMem-desplazamiento][tipo] = 1;
 								} else
 								{
-									pro.directorio[bloqueMem][3] = 1;
+									pro.directorio[bloqueMem-desplazamiento][3] = 1;
 								}
-								pro.directorio[bloqueMem][4] = 1;
+								pro.directorio[bloqueMem-desplazamiento][4] = 1;
 								System.arraycopy(pro.memDatos, bloqueMem * 4, this.cacheDatos[bloqueCach], 0, 4);
 								pro.directorio[4][bloqueCach] = 1;
 								pro.directorio[5][bloqueCach] = 1;
