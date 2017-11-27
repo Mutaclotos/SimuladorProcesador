@@ -686,10 +686,10 @@ public class Nucleo extends Thread
 								switch (estadoBloque)
 								{
 								case 0: //bloque no esta en ningun cache
-									System.arraycopy(pro.memDatos, (bloqueMem-desplazamiento * 4), this.cacheDatos[bloqueCach], 0, 4);
+									System.arraycopy(pro.memDatos, ((bloqueMem-desplazamiento) * 4), this.cacheDatos[bloqueCach], 0, 4);
 									break;
 								case 1: //bloque esta en algun cache, pero no a sido modificado
-									System.arraycopy(pro.memDatos, (bloqueMem-desplazamiento * 4), this.cacheDatos[bloqueCach], 0, 4);
+									System.arraycopy(pro.memDatos, ((bloqueMem-desplazamiento) * 4), this.cacheDatos[bloqueCach], 0, 4);
 									break;
 								case 2: //bloque esta en algun cache, pero a sido modificado
 									boolean flagCacheRemota;
