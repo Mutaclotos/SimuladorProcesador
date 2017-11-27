@@ -714,7 +714,7 @@ public class Nucleo extends Thread
 												break;
 
 											}
-											int dirFisica = bloqueMem * 4;
+											int dirFisica = (bloqueMem-desplazamiento) * 4;
 											if (this.nombreP == 1)
 											{
 												dirFisica = dirFisica - 256;
@@ -732,8 +732,8 @@ public class Nucleo extends Thread
 									System.out.println("Error en tipo de estado");
 									break;
 								}
-								this.cacheDatos[bloqueCach][4] = bloqueMem; //indico bloque de memoria al que pertenece
-								this.cacheDatos[bloqueCach][5] = 1; //indico estdo del  bloque
+								this.cacheDatos[4][bloqueCach] = bloqueMem; //indico bloque de memoria al que pertenece
+								this.cacheDatos[5][bloqueCach] = 1; //indico estdo del  bloque
 								if (this.nombreP == 0) //actualizo el directorio
 								{
 									int tipo = (this.nombre == 0) ? 1 : 2;
@@ -743,7 +743,7 @@ public class Nucleo extends Thread
 									pro.directorio[bloqueMem-desplazamiento][3] = 1;
 								}
 								pro.directorio[bloqueMem-desplazamiento][4] = 1;
-								System.arraycopy(pro.memDatos, bloqueMem * 4, this.cacheDatos[bloqueCach], 0, 4);
+								System.arraycopy(pro.memDatos, (bloqueMem-desplazamiento) * 4, this.cacheDatos[bloqueCach], 0, 4);
 								pro.directorio[4][bloqueCach] = 1;
 								pro.directorio[5][bloqueCach] = 1;
 							} finally
